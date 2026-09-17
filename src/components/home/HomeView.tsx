@@ -19,8 +19,9 @@ import {
   Gamepad2,
   Armchair
 } from 'lucide-react';
-import { productsAPI, categoriesAPI, vendorsAPI } from '../../services/api';
-import { Product, Category, Vendor } from '../../types';
+import { productsAPI, categoriesAPI, vendorsAPI, recommendationsAPI } from '../../services/api';
+import { Product, Category, Vendor, RecommendationResponse } from '../../types';
+import { ProductCard } from '../catalog/ProductCard';
 import { useCart } from '../../context/CartContext';
 import { useComparison } from '../../context/ComparisonContext';
 
@@ -33,6 +34,8 @@ export const HomeView: React.FC<HomeViewProps> = ({ onNavigate }) => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [vendors, setVendors] = useState<Vendor[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [recommendations, setRecommendations] = useState<Product[]>([]);
+  const [recommendationReasons, setRecommendationReasons] = useState<Record<string, string>>({});
 
   // Flash deal countdown timer simulation
   const [timeLeft, setTimeLeft] = useState({ hours: 14, minutes: 32, seconds: 45 });
@@ -45,13 +48,20 @@ export const HomeView: React.FC<HomeViewProps> = ({ onNavigate }) => {
       try {
         setIsLoading(false);
         const [prodRes, catRes, venRes] = await Promise.all([
-          productsAPI.getAll(),
+          productsAPI.getAll({ limit: 24, sort: 'newest' }),
           categoriesAPI.getAll(),
           vendorsAPI.getAll(),
         ]);
         if (prodRes.data.products) setProducts(prodRes.data.products);
         if (catRes.data.categories) setCategories(catRes.data.categories);
         if (venRes.data.vendors) setVendors(venRes.data.vendors);
+        try {
+          const recommendationResponse = await recommendationsAPI.getForContext({ context: 'home', limit: 8 });
+          setRecommendations(recommendationResponse.data.products || []);
+          setRecommendationReasons(recommendationResponse.data.reasons || {});
+        } catch (err) {
+          setRecommendations(products.filter((product) => product.isFeatured || product.isTrending).slice(0, 8));
+        }
       } catch (err) {
         console.error('Failed to load home data', err);
       }
@@ -241,83 +251,7 @@ export const HomeView: React.FC<HomeViewProps> = ({ onNavigate }) => {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
           {flashDealProducts.map((prod) => (
-            <div
-              key={prod.id}
-              className="bg-white rounded-2xl border border-slate-200 p-4 shadow-2xs hover:shadow-md transition flex flex-col justify-between group"
-            >
-              <div className="relative">
-                <span className="absolute top-2 left-2 bg-rose-600 text-white text-[10px] font-extrabold px-2 py-0.5 rounded-md shadow-xs">
-                  {prod.discountPercentage}% OFF
-                </span>
-                <button
-                  onClick={() => toggleWishlist(prod)}
-                  className={`absolute top-2 right-2 p-1.5 rounded-full backdrop-blur-md transition ${
-                    isInWishlist(prod.id)
-                      ? 'bg-rose-50 text-rose-500'
-                      : 'bg-white/80 text-slate-400 hover:text-rose-500'
-                  }`}
-                >
-                  <Heart className={`w-4 h-4 ${isInWishlist(prod.id) ? 'fill-rose-500' : ''}`} />
-                </button>
-
-                <div
-                  onClick={() => onNavigate('product-detail', prod.id)}
-                  className="h-44 rounded-xl overflow-hidden bg-slate-50 flex items-center justify-center cursor-pointer"
-                >
-                  <img
-                    src={prod.thumbnail}
-                    alt={prod.title}
-                    className="max-h-full object-contain group-hover:scale-105 transition-transform duration-300"
-                  />
-                </div>
-              </div>
-
-              <div className="mt-3 space-y-2 flex-1 flex flex-col justify-between">
-                <div>
-                  <div className="flex items-center justify-between text-[11px] text-slate-500 mb-1">
-                    <span className="text-indigo-600 font-semibold">{prod.brand}</span>
-                    <span className="flex items-center gap-1 text-amber-500">
-                      <Star className="w-3 h-3 fill-amber-500" /> {prod.rating}
-                    </span>
-                  </div>
-                  <h4
-                    onClick={() => onNavigate('product-detail', prod.id)}
-                    className="text-xs font-bold text-slate-900 group-hover:text-indigo-600 line-clamp-2 cursor-pointer"
-                  >
-                    {prod.title}
-                  </h4>
-                  <p className="text-[11px] text-slate-400 mt-1">Vendor: <span className="text-slate-700 font-medium">{prod.vendorName}</span></p>
-                </div>
-
-                <div className="pt-3 border-t border-slate-100 space-y-2">
-                  <div className="flex items-baseline gap-2">
-                    <span className="text-base font-extrabold text-slate-900">₹{prod.price.toLocaleString('en-IN')}</span>
-                    <span className="text-xs text-slate-400 line-through">₹{prod.originalPrice.toLocaleString('en-IN')}</span>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-2">
-                    <button
-                      onClick={() => addToCart(prod)}
-                      className="bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold py-2 rounded-xl flex items-center justify-center gap-1 transition"
-                    >
-                      <ShoppingBag className="w-3.5 h-3.5" />
-                      <span>Add</span>
-                    </button>
-                    <button
-                      onClick={() => addToCompare(prod)}
-                      className={`text-xs font-semibold py-2 rounded-xl border flex items-center justify-center gap-1 transition ${
-                        isInCompare(prod.id)
-                          ? 'bg-indigo-50 border-indigo-300 text-indigo-700 font-bold'
-                          : 'border-slate-200 text-slate-700 hover:bg-slate-50'
-                      }`}
-                    >
-                      <GitCompare className="w-3.5 h-3.5" />
-                      <span>{isInCompare(prod.id) ? 'Compared' : 'Compare'}</span>
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
+            <ProductCard key={prod.id} product={prod} onNavigate={onNavigate} />
           ))}
         </div>
       </section>
@@ -343,90 +277,7 @@ export const HomeView: React.FC<HomeViewProps> = ({ onNavigate }) => {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
           {trendingProducts.map((prod) => (
-            <div
-              key={prod.id}
-              className="bg-white rounded-2xl border border-slate-200 p-4 shadow-2xs hover:shadow-md transition flex flex-col justify-between group"
-            >
-              <div className="relative">
-                {prod.isFeatured && (
-                  <span className="absolute top-2 left-2 bg-indigo-600 text-white text-[10px] font-extrabold px-2 py-0.5 rounded-md shadow-xs">
-                    Staff Pick
-                  </span>
-                )}
-                <button
-                  onClick={() => toggleWishlist(prod)}
-                  className={`absolute top-2 right-2 p-1.5 rounded-full backdrop-blur-md transition ${
-                    isInWishlist(prod.id)
-                      ? 'bg-rose-50 text-rose-500'
-                      : 'bg-white/80 text-slate-400 hover:text-rose-500'
-                  }`}
-                >
-                  <Heart className={`w-4 h-4 ${isInWishlist(prod.id) ? 'fill-rose-500' : ''}`} />
-                </button>
-
-                <div
-                  onClick={() => onNavigate('product-detail', prod.id)}
-                  className="h-44 rounded-xl overflow-hidden bg-slate-50 flex items-center justify-center cursor-pointer"
-                >
-                  <img
-                    src={prod.thumbnail}
-                    alt={prod.title}
-                    className="max-h-full object-contain group-hover:scale-105 transition-transform duration-300"
-                  />
-                </div>
-              </div>
-
-              <div className="mt-3 space-y-2 flex-1 flex flex-col justify-between">
-                <div>
-                  <div className="flex items-center justify-between text-[11px] text-slate-500 mb-1">
-                    <span className="text-indigo-600 font-semibold">{prod.brand}</span>
-                    <span className="flex items-center gap-1 text-amber-500">
-                      <Star className="w-3 h-3 fill-amber-500" /> {prod.rating} ({prod.reviewsCount})
-                    </span>
-                  </div>
-                  <h4
-                    onClick={() => onNavigate('product-detail', prod.id)}
-                    className="text-xs font-bold text-slate-900 group-hover:text-indigo-600 line-clamp-2 cursor-pointer"
-                  >
-                    {prod.title}
-                  </h4>
-                  <div className="mt-1 flex items-center gap-1.5 text-[11px]">
-                    <ShieldCheck className="w-3 h-3 text-emerald-600" />
-                    <span className="text-slate-500 truncate">By {prod.vendorName}</span>
-                  </div>
-                </div>
-
-                <div className="pt-3 border-t border-slate-100 space-y-2">
-                  <div className="flex items-baseline gap-2">
-                    <span className="text-base font-extrabold text-slate-900">₹{prod.price.toLocaleString('en-IN')}</span>
-                    {prod.originalPrice > prod.price && (
-                      <span className="text-xs text-slate-400 line-through">₹{prod.originalPrice.toLocaleString('en-IN')}</span>
-                    )}
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-2">
-                    <button
-                      onClick={() => addToCart(prod)}
-                      className="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold py-2 rounded-xl flex items-center justify-center gap-1 transition shadow-xs"
-                    >
-                      <ShoppingBag className="w-3.5 h-3.5" />
-                      <span>Add to Cart</span>
-                    </button>
-                    <button
-                      onClick={() => addToCompare(prod)}
-                      className={`text-xs font-semibold py-2 rounded-xl border flex items-center justify-center gap-1 transition ${
-                        isInCompare(prod.id)
-                          ? 'bg-indigo-50 border-indigo-300 text-indigo-700 font-bold'
-                          : 'border-slate-200 text-slate-700 hover:bg-slate-50'
-                      }`}
-                    >
-                      <GitCompare className="w-3.5 h-3.5" />
-                      <span>{isInCompare(prod.id) ? 'In Compare' : 'Compare'}</span>
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
+            <ProductCard key={prod.id} product={prod} onNavigate={onNavigate} />
           ))}
         </div>
       </section>

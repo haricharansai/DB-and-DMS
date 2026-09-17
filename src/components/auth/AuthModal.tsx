@@ -42,9 +42,9 @@ export const AuthModal: React.FC = () => {
 
     try {
       if (authModalTab === 'login') {
-        const res = await login(email, password);
+        const res = await login({ email, password });
         if (!res.success) {
-          setErrorMsg(res.message);
+          setErrorMsg(res.message || 'Login failed');
         }
       } else {
         const res = await register({
@@ -56,7 +56,7 @@ export const AuthModal: React.FC = () => {
           gstin: role === 'vendor' ? gstin : undefined,
         });
         if (!res.success) {
-          setErrorMsg(res.message);
+          setErrorMsg(res.message || 'Registration failed');
         }
       }
     } catch (err: any) {

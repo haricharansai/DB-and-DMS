@@ -9,7 +9,10 @@
     "start": "node dist/server.cjs",
     "preview": "vite preview",
     "clean": "rm -rf dist server.js",
-    "lint": "tsc --noEmit"
+    "lint": "tsc --noEmit",
+    "migrate:catalog": "tsx server/migrate-catalog.ts",
+    "import:dbms": "tsx server/import-dbms.ts",
+    "import:dbms:500": "tsx server/import-dbms.ts --additional 500 --new-vendors 15"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",
@@ -22,6 +25,7 @@
     "express": "^4.21.2",
     "jsonwebtoken": "^9.0.3",
     "lucide-react": "^0.546.0",
+    "mongodb": "^7.6.0",
     "motion": "^12.23.24",
     "react": "^19.0.1",
     "react-dom": "^19.0.1",

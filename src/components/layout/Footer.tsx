@@ -1,5 +1,6 @@
 import React from 'react';
 import { Store, ShieldCheck, Truck, RefreshCw, Headphones, Database, Lock, CheckCircle2 } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
 
 interface FooterProps {
   onNavigate: (view: string, param?: string) => void;
@@ -7,6 +8,8 @@ interface FooterProps {
 }
 
 export const Footer: React.FC<FooterProps> = ({ onNavigate, onOpenCompass }) => {
+  const { user, openAuthModal } = useAuth();
+
   return (
     <footer className="bg-slate-900 text-slate-300 border-t border-slate-800 text-sm mt-16">
       {/* Value Proposition Highlights */}
@@ -18,7 +21,7 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate, onOpenCompass }) => 
             </div>
             <div>
               <h4 className="font-bold text-white text-xs">Direct Vendor Fulfillment</h4>
-              <p className="text-slate-400 text-xs">Express courier dispatch via FedEx & BlueDart</p>
+              <p className="text-[11px] text-slate-400">Shipped directly from verified merchant warehouses</p>
             </div>
           </div>
 
@@ -27,8 +30,8 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate, onOpenCompass }) => 
               <ShieldCheck className="w-5 h-5" />
             </div>
             <div>
-              <h4 className="font-bold text-white text-xs">Verified Sellers Only</h4>
-              <p className="text-slate-400 text-xs">GST & PAN KYC verification on all merchants</p>
+              <h4 className="font-bold text-white text-xs">KYC Verified Merchants</h4>
+              <p className="text-[11px] text-slate-400">GSTIN audited sellers with buyer protection</p>
             </div>
           </div>
 
@@ -37,8 +40,8 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate, onOpenCompass }) => 
               <Lock className="w-5 h-5" />
             </div>
             <div>
-              <h4 className="font-bold text-white text-xs">Secure JWT & Escrow</h4>
-              <p className="text-slate-400 text-xs">Bcrypt hashed sessions & protected payments</p>
+              <h4 className="font-bold text-white text-xs">JWT Secured Sessions</h4>
+              <p className="text-[11px] text-slate-400">bcrypt encrypted passwords & bearer tokens</p>
             </div>
           </div>
 
@@ -47,36 +50,27 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate, onOpenCompass }) => 
               <Database className="w-5 h-5" />
             </div>
             <div>
-              <h4 className="font-bold text-white text-xs">MongoDB Compass Live</h4>
-              <p className="text-slate-400 text-xs">Full REST API and live BSON schema studio</p>
+              <h4 className="font-bold text-white text-xs">MongoDB Database</h4>
+              <p className="text-[11px] text-slate-400">Synced MongoDB collections & query engine</p>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Main Links */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-12 grid grid-cols-2 md:grid-cols-5 gap-8">
-        <div className="col-span-2">
-          <div className="flex items-center gap-2.5 mb-4">
-            <div className="w-9 h-9 rounded-xl bg-indigo-600 flex items-center justify-center text-white font-bold">
-              <Store className="w-4 h-4" />
+      {/* Main Footer Links */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-12 grid grid-cols-1 md:grid-cols-4 gap-8">
+        <div className="space-y-4">
+          <div className="flex items-center gap-2 text-white">
+            <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center font-bold">
+              <Store className="w-4 h-4 text-white" />
             </div>
-            <span className="text-lg font-bold text-white font-heading">
+            <span className="text-lg font-extrabold tracking-tight font-heading">
               Market<span className="text-indigo-400">Nexus</span>
             </span>
           </div>
-          <p className="text-xs text-slate-400 leading-relaxed mb-4 max-w-sm">
-            High-performance multi-vendor e-commerce platform built on modern Node.js, Express.js REST APIs, MongoDB Compass querying, and React with JWT session security.
+          <p className="text-xs text-slate-400 leading-relaxed">
+            Multi-vendor e-commerce platform built with React, Express, MongoDB, and Tailwind CSS.
           </p>
-          <div className="flex items-center gap-3">
-            <button
-              onClick={onOpenCompass}
-              className="inline-flex items-center gap-2 bg-slate-800 hover:bg-slate-700 text-emerald-400 border border-emerald-500/30 px-3 py-1.5 rounded-lg text-xs font-mono font-medium transition cursor-pointer"
-            >
-              <Database className="w-3.5 h-3.5" />
-              <span>Launch MongoDB Studio</span>
-            </button>
-          </div>
         </div>
 
         <div>
@@ -84,22 +78,22 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate, onOpenCompass }) => 
           <ul className="space-y-2 text-xs">
             <li>
               <button onClick={() => onNavigate('catalog', 'electronics')} className="hover:text-indigo-400 transition">
-                Electronics & Audio
+                Audio & Noise Cancellation
               </button>
             </li>
             <li>
               <button onClick={() => onNavigate('catalog', 'laptops')} className="hover:text-indigo-400 transition">
-                Laptops & Computing
+                Laptops & M3 Max Pro
               </button>
             </li>
             <li>
               <button onClick={() => onNavigate('catalog', 'smartphones')} className="hover:text-indigo-400 transition">
-                Smartphones & Wearables
+                5G Flagship Smartphones
               </button>
             </li>
             <li>
               <button onClick={() => onNavigate('catalog', 'cameras')} className="hover:text-indigo-400 transition">
-                Cameras & Optics
+                Full-Frame Cinema Cameras
               </button>
             </li>
             <li>
@@ -111,18 +105,27 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate, onOpenCompass }) => 
         </div>
 
         <div>
-          <h4 className="text-xs font-bold text-white uppercase tracking-wider mb-3">Merchant Ecosystem</h4>
+          <h4 className="text-xs font-bold text-white uppercase tracking-wider mb-3">Services & Portals</h4>
           <ul className="space-y-2 text-xs">
-            <li>
-              <button onClick={() => onNavigate('vendor-dashboard')} className="hover:text-indigo-400 transition">
-                Vendor Dashboard
-              </button>
-            </li>
-            <li>
-              <button onClick={() => onNavigate('admin-dashboard')} className="hover:text-indigo-400 transition">
-                KYC Verification Portal
-              </button>
-            </li>
+            {user?.role === 'vendor' ? (
+              <li>
+                <button onClick={() => onNavigate('vendor-dashboard')} className="hover:text-amber-400 font-bold transition">
+                  Vendor Dashboard
+                </button>
+              </li>
+            ) : user?.role === 'admin' ? (
+              <li>
+                <button onClick={() => onNavigate('admin-dashboard')} className="hover:text-indigo-400 font-bold transition">
+                  Admin Console
+                </button>
+              </li>
+            ) : (
+              <li>
+                <button onClick={() => openAuthModal('register')} className="hover:text-amber-400 transition">
+                  Sell on MarketNexus
+                </button>
+              </li>
+            )}
             <li>
               <button onClick={() => onNavigate('comparison')} className="hover:text-indigo-400 transition">
                 Side-by-Side Comparison

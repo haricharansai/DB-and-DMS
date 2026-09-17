@@ -26,6 +26,7 @@ import {
   Line
 } from 'recharts';
 import { adminAPI, vendorsAPI } from '../../services/api';
+import { useAuth } from '../../context/AuthContext';
 import { Vendor, AdminMetrics } from '../../types';
 
 interface AdminDashboardProps {
@@ -33,11 +34,32 @@ interface AdminDashboardProps {
 }
 
 export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) => {
+  const { user } = useAuth();
   const [metrics, setMetrics] = useState<AdminMetrics | null>(null);
   const [vendors, setVendors] = useState<Vendor[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+
+  if (user?.role !== 'admin') {
+    return (
+      <div className="max-w-md mx-auto my-16 p-8 bg-white rounded-3xl border border-slate-200 shadow-xl text-center space-y-4">
+        <div className="w-14 h-14 bg-rose-50 text-rose-600 rounded-2xl flex items-center justify-center mx-auto">
+          <ShieldCheck className="w-7 h-7" />
+        </div>
+        <h2 className="text-xl font-extrabold text-slate-900 font-heading">Admin Access Required</h2>
+        <p className="text-xs text-slate-500">
+          The Admin Console is restricted to platform administrators. Public registration for admin accounts is disabled.
+        </p>
+        <button
+          onClick={() => onNavigate('home')}
+          className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 rounded-xl text-xs shadow-md transition cursor-pointer"
+        >
+          Return to Marketplace
+        </button>
+      </div>
+    );
+  }
 
   const fetchData = async () => {
     try {

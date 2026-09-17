@@ -24,6 +24,10 @@ router.post('/auth/register', async (req: Request, res: Response) => {
       return res.status(400).json({ success: false, error: 'Name, email, and password are required' });
     }
 
+    if (role === 'admin' || (role !== 'buyer' && role !== 'vendor')) {
+      return res.status(403).json({ success: false, error: 'Public registration is only available for Buyer (Customer) and Vendor (Seller) accounts.' });
+    }
+
     const existingUser = db.findOne('users', { email: email.toLowerCase() });
     if (existingUser) {
       return res.status(409).json({ success: false, error: 'An account with this email already exists' });
@@ -189,80 +193,69 @@ router.post('/auth/switch-role', (req: Request, res: Response) => {
 // 2. PRODUCTS REST API
 // ==========================================
 
-router.get('/products', (req: Request, res: Response) => {
-  const { category, brand, vendorId, minPrice, maxPrice, search, sort, featured, trending, flashDeal } = req.query;
+function stringList(value: unknown): string[] {
+  if (Array.isArray(value)) return value.flatMap(stringList);
+  return typeof value === 'string' ? value.split(',').map(item => item.trim()).filter(Boolean) : [];
+}
 
-  let query: Record<string, any> = {};
+function catalogFilter(query: Request['query']): Record<string, any> {
+  const filter: Record<string, any> = {};
+  const category = String(query.category || ''); const brands = stringList(query.brands || query.brand); const vendors = stringList(query.vendors || query.vendorId);
+  if (category && category !== 'all') filter.category = category;
+  if (brands.length) filter.brand = { $in: brands };
+  if (vendors.length) filter.vendorId = { $in: vendors };
+  const price: Record<string, number> = {};
+  if (Number.isFinite(Number(query.minPrice))) price.$gte = Number(query.minPrice);
+  if (Number.isFinite(Number(query.maxPrice))) price.$lte = Number(query.maxPrice);
+  if (Object.keys(price).length) filter.price = price;
+  if (Number.isFinite(Number(query.minRating)) && Number(query.minRating) > 0) filter.rating = { $gte: Number(query.minRating) };
+  if (query.inStock === 'true') filter.stock = { $gt: 0 };
+  if (query.featured === 'true') filter.isFeatured = true;
+  if (query.trending === 'true') filter.isTrending = true;
+  if (query.flashDeal === 'true') filter.isFlashDeal = true;
+  if (query.status && query.status !== 'all') filter.status = String(query.status);
+  const search = typeof query.search === 'string' ? query.search.trim() : '';
+  if (search) filter.$or = ['title', 'description', 'brand', 'vendorName', 'tags'].map(field => ({ [field]: { $regex: search, $options: 'i' } }));
+  return filter;
+}
 
-  if (category && category !== 'all') {
-    query.category = category;
+function catalogSort(value: unknown): Record<string, 1 | -1> {
+  switch (value) {
+    case 'price_asc': return { price: 1, id: 1 };
+    case 'price_desc': return { price: -1, id: 1 };
+    case 'rating': return { rating: -1, id: 1 };
+    case 'discount': return { discountPercentage: -1, id: 1 };
+    case 'popularity': return { reviewsCount: -1, rating: -1, id: 1 };
+    default: return { createdAt: -1, id: 1 };
   }
-  if (brand && brand !== 'all') {
-    query.brand = brand;
-  }
-  if (vendorId) {
-    query.vendorId = vendorId;
-  }
-  if (featured === 'true') {
-    query.isFeatured = true;
-  }
-  if (trending === 'true') {
-    query.isTrending = true;
-  }
-  if (flashDeal === 'true') {
-    query.isFlashDeal = true;
-  }
+}
 
-  let products = db.find('products', query);
+function countedFacets(products: any[]) {
+  const count = (key: string, label = key) => Object.values(products.reduce((all: Record<string, any>, product) => {
+    const value = product[key]; if (value) all[value] = all[value] || { value, label: product[label] || value, count: 0 }; if (value) all[value].count += 1; return all;
+  }, {})).sort((left: any, right: any) => right.count - left.count);
+  const prices = products.map(product => Number(product.price)).filter(Number.isFinite);
+  return { brands: count('brand'), categories: count('category', 'categoryName'), vendors: count('vendorId', 'vendorName'), priceRange: { min: prices.length ? Math.min(...prices) : 0, max: prices.length ? Math.max(...prices) : 0 } };
+}
 
-  // Filter by price range
-  if (minPrice !== undefined) {
-    products = products.filter(p => p.price >= Number(minPrice));
-  }
-  if (maxPrice !== undefined) {
-    products = products.filter(p => p.price <= Number(maxPrice));
-  }
-
-  // Filter by search string
-  if (search && typeof search === 'string') {
-    const s = search.toLowerCase();
-    products = products.filter(p =>
-      p.title.toLowerCase().includes(s) ||
-      p.description.toLowerCase().includes(s) ||
-      p.brand.toLowerCase().includes(s) ||
-      p.vendorName.toLowerCase().includes(s) ||
-      (p.tags && p.tags.some((t: string) => t.toLowerCase().includes(s)))
-    );
-  }
-
-  // Sort
-  if (sort === 'price_asc') {
-    products.sort((a, b) => a.price - b.price);
-  } else if (sort === 'price_desc') {
-    products.sort((a, b) => b.price - a.price);
-  } else if (sort === 'rating') {
-    products.sort((a, b) => b.rating - a.rating);
-  } else if (sort === 'discount') {
-    products.sort((a, b) => (b.discountPercentage || 0) - (a.discountPercentage || 0));
-  } else {
-    // Default newest
-    products.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-  }
-
-  res.json({
-    success: true,
-    count: products.length,
-    products
-  });
+router.get('/products', async (req: Request, res: Response) => {
+  try {
+    const page = Math.max(1, Number.parseInt(String(req.query.page || '1'), 10) || 1);
+    const limit = Math.min(100, Math.max(1, Number.parseInt(String(req.query.limit || '24'), 10) || 24));
+    const filter = catalogFilter(req.query);
+    const [result, facetProducts] = await Promise.all([db.listCatalogProducts(filter, catalogSort(req.query.sort), page, limit), db.listCatalogFacetProducts(filter)]);
+    const totalPages = Math.max(1, Math.ceil(result.total / limit));
+    res.json({ success: true, products: result.products, pagination: { page, limit, total: result.total, totalPages, hasPreviousPage: page > 1, hasNextPage: page < totalPages }, facets: countedFacets(facetProducts), source: result.source });
+  } catch (error: any) { res.status(503).json({ success: false, error: error.message || 'Catalog database unavailable' }); }
 });
 
-router.get('/products/:id', (req: Request, res: Response) => {
-  const product = db.findById('products', req.params.id);
+router.get('/products/:id', async (req: Request, res: Response) => {
+  const product = await db.findCatalogProduct(req.params.id);
   if (!product) {
     return res.status(404).json({ success: false, error: 'Product not found' });
   }
 
-  const vendor = db.findById('vendors', product.vendorId);
+  const vendor = await db.findVendor(product.vendorId);
   const reviews = db.find('reviews', { productId: product.id });
 
   res.json({
@@ -273,7 +266,7 @@ router.get('/products/:id', (req: Request, res: Response) => {
   });
 });
 
-router.post('/products', authenticateJWT, authorizeRoles('vendor', 'admin'), (req: AuthenticatedRequest, res: Response) => {
+router.post('/products', authenticateJWT, authorizeRoles('vendor', 'admin'), async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { title, description, price, originalPrice, category, brand, stock, images, thumbnail, specs, colors, tags } = req.body;
 
@@ -288,7 +281,7 @@ router.post('/products', authenticateJWT, authorizeRoles('vendor', 'admin'), (re
       ? Math.round(((originalPrice - price) / originalPrice) * 100)
       : 0;
 
-    const newProduct = db.insertOne('products', {
+    const newProduct = await db.insertCatalogProduct({
       title,
       description: description || '',
       price: Number(price),
@@ -322,19 +315,23 @@ router.post('/products', authenticateJWT, authorizeRoles('vendor', 'admin'), (re
   }
 });
 
-router.put('/products/:id', authenticateJWT, authorizeRoles('vendor', 'admin'), (req: AuthenticatedRequest, res: Response) => {
-  const result = db.updateOne('products', { id: req.params.id }, req.body);
-  if (result.matchedCount === 0) {
+router.put('/products/:id', authenticateJWT, authorizeRoles('vendor', 'admin'), async (req: AuthenticatedRequest, res: Response) => {
+  const existing = await db.findCatalogProduct(req.params.id);
+  if (!existing) {
     return res.status(404).json({ success: false, error: 'Product not found' });
   }
-  res.json({ success: true, product: result.doc });
+  if (req.user!.role !== 'admin' && existing.vendorId !== req.user!.vendorId) return res.status(403).json({ success: false, error: 'You can only update your own products' });
+  const product = await db.updateCatalogProduct(req.params.id, req.body);
+  res.json({ success: true, product });
 });
 
-router.delete('/products/:id', authenticateJWT, authorizeRoles('vendor', 'admin'), (req: AuthenticatedRequest, res: Response) => {
-  const result = db.deleteOne('products', { id: req.params.id });
-  if (result.deletedCount === 0) {
+router.delete('/products/:id', authenticateJWT, authorizeRoles('vendor', 'admin'), async (req: AuthenticatedRequest, res: Response) => {
+  const existing = await db.findCatalogProduct(req.params.id);
+  if (!existing) {
     return res.status(404).json({ success: false, error: 'Product not found' });
   }
+  if (req.user!.role !== 'admin' && existing.vendorId !== req.user!.vendorId) return res.status(403).json({ success: false, error: 'You can only delete your own products' });
+  await db.deleteCatalogProduct(req.params.id);
   res.json({ success: true, message: 'Product deleted successfully' });
 });
 
@@ -342,8 +339,8 @@ router.delete('/products/:id', authenticateJWT, authorizeRoles('vendor', 'admin'
 // 3. CATEGORIES & VENDORS
 // ==========================================
 
-router.get('/categories', (req: Request, res: Response) => {
-  const categories = db.find('categories', {});
+router.get('/categories', async (req: Request, res: Response) => {
+  const categories = await db.listCatalogCategories();
   res.json({ success: true, categories });
 });
 

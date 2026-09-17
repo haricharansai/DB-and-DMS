@@ -33,10 +33,38 @@ interface VendorDashboardProps {
 }
 
 export const VendorDashboard: React.FC<VendorDashboardProps> = ({ onNavigate }) => {
-  const { user } = useAuth();
+  const { user, openAuthModal } = useAuth();
   const [products, setProducts] = useState<Product[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+
+  if (user?.role !== 'vendor' && user?.role !== 'admin') {
+    return (
+      <div className="max-w-md mx-auto my-16 p-8 bg-white rounded-3xl border border-slate-200 shadow-xl text-center space-y-4">
+        <div className="w-14 h-14 bg-amber-50 text-amber-600 rounded-2xl flex items-center justify-center mx-auto">
+          <Store className="w-7 h-7" />
+        </div>
+        <h2 className="text-xl font-extrabold text-slate-900 font-heading">Merchant Access Required</h2>
+        <p className="text-xs text-slate-500">
+          The Vendor Portal is reserved for verified sellers. You are currently logged in as a Customer.
+        </p>
+        <div className="pt-2 flex flex-col gap-2">
+          <button
+            onClick={() => openAuthModal('register')}
+            className="w-full bg-amber-500 hover:bg-amber-600 text-white font-bold py-2.5 rounded-xl text-xs shadow-md transition cursor-pointer"
+          >
+            Register as Merchant Partner
+          </button>
+          <button
+            onClick={() => onNavigate('home')}
+            className="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2 rounded-xl text-xs transition cursor-pointer"
+          >
+            Return to Shopping
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   // Add/Edit Product Modal
   const [isModalOpen, setIsModalOpen] = useState(false);

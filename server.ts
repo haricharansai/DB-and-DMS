@@ -1,11 +1,13 @@
+import 'dotenv/config';
 import express from 'express';
 import path from 'path';
 import { createServer as createViteServer } from 'vite';
 import apiRoutes from './server/routes';
+import { db } from './server/db';
 
 async function startServer() {
   const app = express();
-  const PORT = 3000;
+  const PORT = Number(process.env.PORT || 3000);
 
   // Middleware for body parsing
   app.use(express.json());
@@ -20,7 +22,7 @@ async function startServer() {
       status: 'ok',
       service: 'MarketNexus Full-Stack Engine',
       timestamp: new Date().toISOString(),
-      database: 'MongoDB In-Memory Active'
+      database: db.getRuntimeStatus()
     });
   });
 
@@ -40,7 +42,7 @@ async function startServer() {
   }
 
   app.listen(PORT, '0.0.0.0', () => {
-    console.log(`🚀 MarketNexus Multi-Vendor Server running on http://0.0.0.0:${PORT}`);
+    console.log(`🚀 MarketNexus Multi-Vendor Server running on http://localhost:${PORT}`);
   });
 }
 

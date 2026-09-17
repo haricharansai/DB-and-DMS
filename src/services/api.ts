@@ -1,5 +1,30 @@
 import axios, { AxiosInstance } from 'axios';
-import { Product, Vendor, Category, Order, Review, User, AdminMetrics } from '../types';
+import {
+  Product,
+  Vendor,
+  Category,
+  Order,
+  Review,
+  User,
+  AdminMetrics,
+  ProductQueryParams,
+  ProductListResponse,
+  ProductCreateDTO,
+  ProductUpdateDTO,
+  MediaUploadSignatureRequest,
+  MediaUploadSignatureResponse,
+  CloudinaryUploadResult,
+  AIDraftRequest,
+  AIDraftResponse,
+  AISearchRequest,
+  AISearchResponse,
+  VisualSearchRequest,
+  VisualSearchResponse,
+  RecommendationContext,
+  RecommendationResponse,
+  ProductEventPayload,
+  ProductEvent,
+} from '../types';
 
 const api: AxiosInstance = axios.create({
   baseURL: '/api',
@@ -9,7 +34,6 @@ const api: AxiosInstance = axios.create({
   timeout: 10000,
 });
 
-// Attach JWT Bearer token on every request if present
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('marketnexus_jwt_token');
@@ -23,7 +47,6 @@ api.interceptors.request.use(
 
 export default api;
 
-// Typed API functions
 export const authAPI = {
   login: (credentials: { email: string; password: string }) =>
     api.post<{ success: boolean; token: string; user: User }>('/auth/login', credentials),
@@ -35,13 +58,15 @@ export const authAPI = {
 };
 
 export const productsAPI = {
-  getAll: (params?: Record<string, any>) =>
-    api.get<{ success: boolean; count: number; products: Product[] }>('/products', { params }),
+  getAll: (params?: ProductQueryParams) =>
+    api.get<ProductListResponse>('/products', { params }),
+  getPaginated: (params?: ProductQueryParams) =>
+    api.get<ProductListResponse>('/products', { params }),
   getById: (id: string) =>
     api.get<{ success: boolean; product: Product; vendor: Vendor; reviews: Review[] }>(`/products/${id}`),
-  create: (data: Partial<Product>) =>
+  create: (data: ProductCreateDTO) =>
     api.post<{ success: boolean; product: Product }>('/products', data),
-  update: (id: string, data: Partial<Product>) =>
+  update: (id: string, data: ProductUpdateDTO) =>
     api.put<{ success: boolean; product: Product }>(`/products/${id}`, data),
   delete: (id: string) =>
     api.delete<{ success: boolean; message: string }>(`/products/${id}`),
@@ -71,6 +96,52 @@ export const reviewsAPI = {
     api.get<{ success: boolean; reviews: Review[] }>('/reviews', { params: { productId } }),
   create: (data: { productId: string; rating: number; title: string; comment: string }) =>
     api.post<{ success: boolean; review: Review }>('/reviews', data),
+};
+
+export const mediaAPI = {
+  getUploadSignature: (data: MediaUploadSignatureRequest) =>
+    api.post<MediaUploadSignatureResponse>('/media/upload-signature', data),
+  uploadToCloudinary: async (file: File, signature: MediaUploadSignatureResponse) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('api_key', signature.apiKey);
+    formData.append('timestamp', String(signature.timestamp));
+    formData.append('signature', signature.signature);
+    formData.append('public_id', signature.publicId);
+    if (signature.folder) formData.append('folder', signature.folder);
+    if (signature.tags?.length) formData.append('tags', signature.tags.join(','));
+
+    const uploadUrl = signature.uploadUrl || `https://api.cloudinary.com/v1_1/${signature.cloudName}/image/upload`;
+    const response = await fetch(uploadUrl, { method: 'POST', body: formData });
+    if (!response.ok) {
+      throw new Error('Cloudinary upload failed');
+    }
+    return response.json() as Promise<CloudinaryUploadResult>;
+  },
+};
+
+export const aiAPI = {
+  createDraft: (data: AIDraftRequest) =>
+    api.post<AIDraftResponse>('/ai/products/draft', data),
+  search: (data: AISearchRequest) =>
+    api.post<AISearchResponse>('/ai/search', data),
+  visualSearch: (data: VisualSearchRequest) =>
+    api.post<VisualSearchResponse>('/ai/visual-search', data),
+};
+
+export const recommendationsAPI = {
+  getForContext: (data: RecommendationContext) =>
+    api.get<RecommendationResponse>('/recommendations', { params: data }),
+  getForProduct: (productId: string, limit = 6) =>
+    api.get<RecommendationResponse>('/recommendations', { params: { context: 'product_detail', productId, limit } }),
+};
+
+export const eventsAPI = {
+  track: (data: ProductEventPayload) =>
+    api.post<{ success: boolean; event: ProductEvent }>('/events', {
+      ...data,
+      occurredAt: data.occurredAt || new Date().toISOString(),
+    }),
 };
 
 export const adminAPI = {
