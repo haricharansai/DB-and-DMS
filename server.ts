@@ -1,5 +1,6 @@
 import 'dotenv/config';
 import express from 'express';
+import os from 'os';
 import path from 'path';
 import { createServer as createViteServer } from 'vite';
 import apiRoutes from './server/routes';
@@ -8,6 +9,7 @@ import { db } from './server/db';
 async function startServer() {
   const app = express();
   const PORT = Number(process.env.PORT || 3000);
+  const HOST = process.env.HOST || '0.0.0.0';
 
   // Middleware for body parsing
   app.use(express.json());
@@ -41,8 +43,14 @@ async function startServer() {
     });
   }
 
-  app.listen(PORT, '0.0.0.0', () => {
-    console.log(`🚀 MarketNexus Multi-Vendor Server running on http://localhost:${PORT}`);
+  app.listen(PORT, HOST, () => {
+    const networkAddresses = Object.values(os.networkInterfaces())
+      .flat()
+      .filter((address): address is os.NetworkInterfaceInfo => Boolean(address && !address.internal && address.family === 'IPv4'))
+      .map((address) => `http://${address.address}:${PORT}`);
+
+    console.log(`MarketNexus server running on http://localhost:${PORT}`);
+    networkAddresses.forEach((address) => console.log(`Network access: ${address}`));
   });
 }
 
