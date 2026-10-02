@@ -46,6 +46,18 @@ async function startServer() {
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
 
+  // Do not accept requests until the database has finished loading MongoDB or
+  // the JSON backup. This prevents early registrations from being overwritten
+  // when initialization completes after the request has already started.
+  app.use('/api', async (_req, res, next) => {
+    try {
+      await db.ready();
+      next();
+    } catch (error) {
+      next(error);
+    }
+  });
+
   // REST API Routes
   app.use('/api', apiRoutes);
 
