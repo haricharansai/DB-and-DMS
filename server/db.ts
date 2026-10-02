@@ -37,7 +37,19 @@ export class MongoDatabase {
   public async ready(): Promise<void> { await this.initialization; }
 
   public getRuntimeStatus() {
-    return { mode: this.mongoDb ? 'mongodb' : 'local-json-fallback', connected: Boolean(this.mongoDb) };
+    return {
+      mode: this.mongoDb ? 'mongodb' : 'local-json-fallback',
+      connected: Boolean(this.mongoDb),
+      persistent: Boolean(this.mongoDb),
+    };
+  }
+
+  /**
+   * Keep the demo usable when no database is configured. Set
+   * REQUIRE_MONGODB=true to reject the JSON fallback on a production service.
+   */
+  private canUseJsonFallback(): boolean {
+    return process.env.REQUIRE_MONGODB !== 'true';
   }
 
   public async getMongoDb(): Promise<Db | null> {
@@ -258,7 +270,7 @@ export class MongoDatabase {
       ]);
       return { products: products.map((product: any) => ({ ...product, id: product.id || String(product._id) })) as MongoDocument[], total, source: 'mongodb' as const };
     }
-    if (process.env.NODE_ENV === 'production') throw new Error('MongoDB is unavailable; JSON fallback is disabled in production.');
+    if (!this.canUseJsonFallback()) throw new Error('MongoDB is unavailable and REQUIRE_MONGODB=true. Configure MONGODB_URI or remove REQUIRE_MONGODB.');
     const all = this.find('products', filter, { sort });
     return { products: all.slice((page - 1) * limit, page * limit), total: all.length, source: 'local-json' as const };
   }
@@ -266,14 +278,14 @@ export class MongoDatabase {
   public async listCatalogFacetProducts(filter: Record<string, any>): Promise<MongoDocument[]> {
     await this.ready();
     if (this.mongoDb) return await this.mongoDb.collection<any>('products').find(filter).project({ brand: 1, category: 1, categoryName: 1, vendorId: 1, vendorName: 1, price: 1 }).toArray() as MongoDocument[];
-    if (process.env.NODE_ENV === 'production') throw new Error('MongoDB is unavailable; JSON fallback is disabled in production.');
+    if (!this.canUseJsonFallback()) throw new Error('MongoDB is unavailable and REQUIRE_MONGODB=true. Configure MONGODB_URI or remove REQUIRE_MONGODB.');
     return this.find('products', filter);
   }
 
   public async listCatalogCategories(): Promise<MongoDocument[]> {
     await this.ready();
     if (this.mongoDb) return await this.mongoDb.collection<any>('categories').find({}).toArray() as MongoDocument[];
-    if (process.env.NODE_ENV === 'production') throw new Error('MongoDB is unavailable; JSON fallback is disabled in production.');
+    if (!this.canUseJsonFallback()) throw new Error('MongoDB is unavailable and REQUIRE_MONGODB=true. Configure MONGODB_URI or remove REQUIRE_MONGODB.');
     return this.find('categories', {});
   }
 
@@ -283,7 +295,7 @@ export class MongoDatabase {
       const doc = await this.mongoDb.collection<any>('products').findOne({ $or: [{ id }, { _id: id }] }) as MongoDocument | null;
       return doc ? { ...doc, id: doc.id || String(doc._id) } : null;
     }
-    if (process.env.NODE_ENV === 'production') throw new Error('MongoDB is unavailable; JSON fallback is disabled in production.');
+    if (!this.canUseJsonFallback()) throw new Error('MongoDB is unavailable and REQUIRE_MONGODB=true. Configure MONGODB_URI or remove REQUIRE_MONGODB.');
     return this.findById('products', id);
   }
 
@@ -293,7 +305,7 @@ export class MongoDatabase {
       const doc = await this.mongoDb.collection<any>('vendors').findOne({ $or: [{ id }, { _id: id }] }) as MongoDocument | null;
       return doc ? { ...doc, id: doc.id || String(doc._id) } : null;
     }
-    if (process.env.NODE_ENV === 'production') throw new Error('MongoDB is unavailable; JSON fallback is disabled in production.');
+    if (!this.canUseJsonFallback()) throw new Error('MongoDB is unavailable and REQUIRE_MONGODB=true. Configure MONGODB_URI or remove REQUIRE_MONGODB.');
     return this.findById('vendors', id);
   }
 
@@ -304,7 +316,7 @@ export class MongoDatabase {
       await this.mongoDb.collection<any>('products').insertOne(normalized);
       return normalized;
     }
-    if (process.env.NODE_ENV === 'production') throw new Error('MongoDB is unavailable; JSON fallback is disabled in production.');
+    if (!this.canUseJsonFallback()) throw new Error('MongoDB is unavailable and REQUIRE_MONGODB=true. Configure MONGODB_URI or remove REQUIRE_MONGODB.');
     return this.insertOne('products', normalized);
   }
 
@@ -313,14 +325,14 @@ export class MongoDatabase {
     const safeUpdate: Record<string, any> = { ...update, updatedAt: new Date().toISOString() };
     delete safeUpdate.id; delete safeUpdate._id; delete safeUpdate.vendorId; delete safeUpdate.vendorName;
     if (this.mongoDb) return await this.mongoDb.collection<any>('products').findOneAndUpdate({ $or: [{ id }, { _id: id }] }, { $set: safeUpdate }, { returnDocument: 'after' }) as MongoDocument | null;
-    if (process.env.NODE_ENV === 'production') throw new Error('MongoDB is unavailable; JSON fallback is disabled in production.');
+    if (!this.canUseJsonFallback()) throw new Error('MongoDB is unavailable and REQUIRE_MONGODB=true. Configure MONGODB_URI or remove REQUIRE_MONGODB.');
     return this.updateOne('products', { id }, safeUpdate).doc;
   }
 
   public async deleteCatalogProduct(id: string): Promise<boolean> {
     await this.ready();
     if (this.mongoDb) return (await this.mongoDb.collection<any>('products').deleteOne({ $or: [{ id }, { _id: id }] })).deletedCount === 1;
-    if (process.env.NODE_ENV === 'production') throw new Error('MongoDB is unavailable; JSON fallback is disabled in production.');
+    if (!this.canUseJsonFallback()) throw new Error('MongoDB is unavailable and REQUIRE_MONGODB=true. Configure MONGODB_URI or remove REQUIRE_MONGODB.');
     return this.deleteOne('products', { id }).deletedCount === 1;
   }
 
