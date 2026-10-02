@@ -27,6 +27,8 @@ export class MongoDatabase {
   private client: MongoClient | null = null;
   private mongoDb: Db | null = null;
   private diskSaveTimer: ReturnType<typeof setTimeout> | null = null;
+  private pendingMongoWrites = new Set<Promise<void>>();
+  private mongoWriteError: Error | null = null;
   private initialization: Promise<void>;
   private mongoUrl = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/marketnexus';
 
@@ -55,6 +57,16 @@ export class MongoDatabase {
   public async getMongoDb(): Promise<Db | null> {
     await this.ready();
     return this.mongoDb;
+  }
+
+  /** Wait for writes started by synchronous repository helpers to reach MongoDB. */
+  public async flushPendingMongoWrites(): Promise<void> {
+    await Promise.all(Array.from(this.pendingMongoWrites));
+    if (this.mongoWriteError) {
+      const error = this.mongoWriteError;
+      this.mongoWriteError = null;
+      throw error;
+    }
   }
 
   public async init() {
@@ -432,9 +444,14 @@ export class MongoDatabase {
     this.saveToDisk();
 
     if (this.mongoDb) {
-      this.mongoDb.collection(collectionName).insertOne({ ...newDoc } as any).catch(err => {
-        console.error(`MongoDB insertOne error on ${collectionName}:`, err);
-      });
+      const write = this.mongoDb.collection(collectionName).insertOne({ ...newDoc } as any)
+        .then(() => undefined)
+        .catch(err => {
+          this.mongoWriteError = err instanceof Error ? err : new Error(String(err));
+          console.error(`MongoDB insertOne error on ${collectionName}:`, err);
+        });
+      this.pendingMongoWrites.add(write);
+      write.then(() => this.pendingMongoWrites.delete(write), () => this.pendingMongoWrites.delete(write));
     }
 
     return newDoc;

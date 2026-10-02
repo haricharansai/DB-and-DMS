@@ -111,6 +111,11 @@ router.post('/auth/register', async (req: Request, res: Response) => {
       performedBy: newUser.id
     });
 
+    // insertOne keeps the synchronous repository API used throughout the app,
+    // so wait here before claiming registration succeeded. This makes MongoDB
+    // write failures visible to the client instead of silently losing users.
+    await db.flushPendingMongoWrites();
+
     res.status(201).json({
       success: true,
       token,
