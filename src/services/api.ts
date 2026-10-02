@@ -53,8 +53,8 @@ export const authAPI = {
   register: (data: { name: string; email: string; password: string; role?: string; phone?: string; businessName?: string; gstin?: string }) =>
     api.post<{ success: boolean; token: string; user: User }>('/auth/register', data),
   getMe: () => api.get<{ success: boolean; user: User }>('/auth/me'),
-  switchRole: (targetRole: string) =>
-    api.post<{ success: boolean; token: string; user: User; message: string }>('/auth/switch-role', { targetRole }),
+  updateAddresses: (addresses: import('../types').Address[]) => api.put<{ success: boolean; user: User }>('/auth/me/addresses', { addresses }),
+  updateProfile: (data: Pick<User, 'name' | 'phone' | 'avatar'>) => api.put<{ success: boolean; user: User }>('/auth/me', data),
 };
 
 export const productsAPI = {
@@ -85,7 +85,7 @@ export const vendorsAPI = {
 export const ordersAPI = {
   getAll: () => api.get<{ success: boolean; orders: Order[] }>('/orders'),
   getById: (id: string) => api.get<{ success: boolean; order: Order }>(`/orders/${id}`),
-  create: (orderData: { items: any[]; shippingAddress: any; paymentMethod: string }) =>
+  create: (orderData: { items: any[]; shippingAddress: any; paymentMethod: string; couponCode?: string }) =>
     api.post<{ success: boolean; order: Order }>('/orders', orderData),
   updateStatus: (id: string, data: { status: string; vendorId?: string; trackingNumber?: string }) =>
     api.put<{ success: boolean; order: Order }>(`/orders/${id}/status`, data),
@@ -145,7 +145,7 @@ export const eventsAPI = {
 };
 
 export const adminAPI = {
-  getMetrics: () => api.get<AdminMetrics>('/admin/metrics'),
+  getMetrics: () => api.get<{ success: boolean; metrics: AdminMetrics }>('/admin/metrics'),
   updateVendorStatus: (id: string, status: string) =>
     api.put<{ success: boolean; vendor: Vendor }>(`/admin/vendors/${id}/status`, { status }),
   approveVendor: (id: string) => api.post<{ success: boolean; vendor: Vendor }>(`/admin/vendors/${id}/approve`),
@@ -156,6 +156,8 @@ export const compassAPI = {
   getCollections: () => api.get<any>('/mongodb/collections'),
   getDocuments: (collection: string, filter?: any, sort?: any) =>
     api.post<any>('/mongodb/query', { collection, filter, sort }),
+  aggregate: (collection: string, pipeline: any[]) => api.post<any>('/mongodb/aggregate', { collection, pipeline }),
+  getIndexes: (collection: string) => api.get<any>(`/mongodb/collections/${collection}/indexes`),
   insertDocument: (collection: string, doc: any) =>
     api.post<any>(`/mongodb/collections/${collection}`, doc),
   updateDocument: (collection: string, id: string, doc: any) =>

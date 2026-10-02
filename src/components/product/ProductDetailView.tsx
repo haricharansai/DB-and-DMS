@@ -35,6 +35,7 @@ export const ProductDetailView: React.FC<ProductDetailViewProps> = ({ productId,
   const [selectedColor, setSelectedColor] = useState<string>('');
   const [quantity, setQuantity] = useState<number>(1);
   const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   // Review Form State
   const [newRating, setNewRating] = useState<number>(5);
@@ -50,9 +51,11 @@ export const ProductDetailView: React.FC<ProductDetailViewProps> = ({ productId,
     const fetchProductDetails = async () => {
       try {
         setIsLoading(true);
+        setLoadError(null);
         const res = await productsAPI.getById(productId);
         if (res.data.product) {
           setProduct(res.data.product);
+          setQuantity((current) => Math.min(current, Math.max(1, res.data.product.stock)));
           setSelectedImage(res.data.product.images[0] || res.data.product.thumbnail);
           setSelectedColor(res.data.product.colors?.[0] || 'Default');
         }
@@ -60,6 +63,7 @@ export const ProductDetailView: React.FC<ProductDetailViewProps> = ({ productId,
         if (res.data.reviews) setReviews(res.data.reviews);
       } catch (err) {
         console.error('Failed to load product details', err);
+        setLoadError('Unable to load this product. Please try again.');
       } finally {
         setIsLoading(false);
       }
@@ -103,7 +107,7 @@ export const ProductDetailView: React.FC<ProductDetailViewProps> = ({ productId,
     }
   };
 
-  if (isLoading || !product) {
+  if (isLoading) {
     return (
       <div className="min-h-[500px] flex items-center justify-center">
         <div className="flex flex-col items-center gap-3">
@@ -112,6 +116,10 @@ export const ProductDetailView: React.FC<ProductDetailViewProps> = ({ productId,
         </div>
       </div>
     );
+  }
+
+  if (loadError || !product) {
+    return <div className="min-h-[500px] flex flex-col items-center justify-center gap-4 text-center"><p className="text-sm font-semibold text-rose-600">{loadError || 'Product not found.'}</p><button onClick={() => onNavigate('catalog')} className="px-4 py-2 rounded-xl bg-indigo-600 text-white text-xs font-bold">Back to catalog</button></div>;
   }
 
   return (
@@ -304,7 +312,8 @@ export const ProductDetailView: React.FC<ProductDetailViewProps> = ({ productId,
               {/* Add to Cart */}
               <button
                 onClick={() => addToCart(product, quantity, selectedColor)}
-                className="flex-1 bg-slate-900 hover:bg-slate-800 text-white font-bold py-3 px-4 rounded-xl text-xs flex items-center justify-center gap-2 shadow-xs transition"
+                disabled={product.stock <= 0}
+                className="flex-1 bg-slate-900 hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-3 px-4 rounded-xl text-xs flex items-center justify-center gap-2 shadow-xs transition"
               >
                 <ShoppingBag className="w-4 h-4" />
                 <span>Add to Cart (₹{(product.price * quantity).toLocaleString('en-IN')})</span>

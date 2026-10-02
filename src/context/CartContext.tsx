@@ -65,11 +65,12 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   const addToCart = (product: Product, quantity: number = 1, selectedColor?: string) => {
+    const requestedQuantity = Math.max(1, Math.floor(quantity));
     setCartItems(prev => {
       const existingIndex = prev.findIndex(item => item.productId === product.id);
       if (existingIndex > -1) {
         const updated = [...prev];
-        updated[existingIndex].quantity += quantity;
+        updated[existingIndex].quantity = Math.min(product.stock, updated[existingIndex].quantity + requestedQuantity);
         if (selectedColor) updated[existingIndex].selectedColor = selectedColor;
         return updated;
       }
@@ -78,7 +79,7 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         {
           productId: product.id,
           product,
-          quantity,
+          quantity: Math.min(product.stock, requestedQuantity),
           selectedColor: selectedColor || (product.colors && product.colors[0]) || 'Default',
           vendorId: product.vendorId,
           vendorName: product.vendorName,
@@ -94,7 +95,7 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       return;
     }
     setCartItems(prev =>
-      prev.map(item => (item.productId === productId ? { ...item, quantity } : item))
+      prev.map(item => (item.productId === productId ? { ...item, quantity: Math.min(item.product.stock, Math.floor(quantity)) } : item))
     );
   };
 

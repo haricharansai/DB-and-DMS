@@ -27,7 +27,7 @@ interface UserProfileViewProps {
 }
 
 export const UserProfileView: React.FC<UserProfileViewProps> = ({ onNavigate }) => {
-  const { user, logout, openAuthModal } = useAuth();
+  const { user, logout, openAuthModal, updateAddresses, updateProfile } = useAuth();
   const [activeTab, setActiveTab] = useState<'profile' | 'addresses' | 'orders'>('profile');
   const [orders, setOrders] = useState<Order[]>([]);
   const [isLoadingOrders, setIsLoadingOrders] = useState(false);
@@ -37,6 +37,9 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({ onNavigate }) 
   const [name, setName] = useState(user?.name || '');
   const [phone, setPhone] = useState(user?.phone || '+91 98765 43210');
   const [avatar, setAvatar] = useState(user?.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80');
+  const [profileError, setProfileError] = useState<string | null>(null);
+  const [isAddingAddress, setIsAddingAddress] = useState(false);
+  const [newAddress, setNewAddress] = useState({ fullName: user?.name || '', phone: user?.phone || '', street: '', city: '', state: '', zipCode: '' });
 
   useEffect(() => {
     if (user) {
@@ -59,6 +62,15 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({ onNavigate }) 
     } finally {
       setIsLoadingOrders(false);
     }
+  };
+
+  const saveProfile = async () => {
+    setProfileError(null);
+    if (!await updateProfile({ name, phone, avatar })) {
+      setProfileError('Unable to save profile changes. Check your name and phone number.');
+      return;
+    }
+    setIsEditing(false);
   };
 
   if (!user) {
@@ -210,6 +222,8 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({ onNavigate }) 
         </div>
       </div>
 
+      {profileError && <p className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-xs font-semibold text-rose-700">{profileError}</p>}
+
       {/* Tab 1: Personal Information */}
       {activeTab === 'profile' && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -281,7 +295,7 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({ onNavigate }) 
 
               {isEditing && (
                 <button
-                  onClick={() => setIsEditing(false)}
+                  onClick={saveProfile}
                   className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-5 py-2.5 rounded-xl text-xs flex items-center gap-1.5 shadow-md transition"
                 >
                   <Save className="w-3.5 h-3.5" />
@@ -332,11 +346,25 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({ onNavigate }) 
               <h3 className="text-base font-extrabold text-slate-900 font-heading">Saved Delivery Addresses</h3>
               <p className="text-xs text-slate-500">Manage shipping destinations for direct vendor orders</p>
             </div>
-            <button className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-3.5 py-2 rounded-xl text-xs flex items-center gap-1.5 transition">
+            <button onClick={() => setIsAddingAddress((current) => !current)} className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-3.5 py-2 rounded-xl text-xs flex items-center gap-1.5 transition">
               <Plus className="w-3.5 h-3.5" />
               <span>Add New Address</span>
             </button>
           </div>
+
+          {isAddingAddress && (
+            <form onSubmit={async (event) => {
+              event.preventDefault();
+              const address = { ...newAddress, id: `addr_${Date.now()}`, isDefault: false };
+              if (await updateAddresses([...defaultAddresses, address])) {
+                setIsAddingAddress(false);
+                setNewAddress({ fullName: user.name, phone: user.phone || '', street: '', city: '', state: '', zipCode: '' });
+              } else setProfileError('Unable to save the address. Please complete every field.');
+            }} className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-4 bg-slate-50 rounded-2xl border border-slate-200 text-xs">
+              {([['fullName', 'Full name'], ['phone', 'Phone'], ['street', 'Street'], ['city', 'City'], ['state', 'State'], ['zipCode', 'PIN code']] as const).map(([field, label]) => <input key={field} required value={newAddress[field]} onChange={(event) => setNewAddress((current) => ({ ...current, [field]: event.target.value }))} placeholder={label} className="px-3 py-2 rounded-xl border border-slate-200 bg-white" />)}
+              <div className="sm:col-span-2 flex justify-end gap-2"><button type="button" onClick={() => setIsAddingAddress(false)} className="px-3 py-2 font-bold text-slate-600">Cancel</button><button className="px-3 py-2 rounded-xl bg-indigo-600 text-white font-bold">Save Address</button></div>
+            </form>
+          )}
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {defaultAddresses.map((addr) => (

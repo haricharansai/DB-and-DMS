@@ -25,51 +25,34 @@ import {
   LineChart,
   Line
 } from 'recharts';
-import { adminAPI, vendorsAPI } from '../../services/api';
+import { adminAPI, ordersAPI, vendorsAPI } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
-import { Vendor, AdminMetrics } from '../../types';
+import { Vendor, AdminMetrics, Order } from '../../types';
 
 interface AdminDashboardProps {
   onNavigate: (view: string, param?: string) => void;
 }
 
-export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) => {
+const AdminDashboardContent: React.FC<AdminDashboardProps> = ({ onNavigate }) => {
   const { user } = useAuth();
   const [metrics, setMetrics] = useState<AdminMetrics | null>(null);
   const [vendors, setVendors] = useState<Vendor[]>([]);
+  const [orders, setOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
 
-  if (user?.role !== 'admin') {
-    return (
-      <div className="max-w-md mx-auto my-16 p-8 bg-white rounded-3xl border border-slate-200 shadow-xl text-center space-y-4">
-        <div className="w-14 h-14 bg-rose-50 text-rose-600 rounded-2xl flex items-center justify-center mx-auto">
-          <ShieldCheck className="w-7 h-7" />
-        </div>
-        <h2 className="text-xl font-extrabold text-slate-900 font-heading">Admin Access Required</h2>
-        <p className="text-xs text-slate-500">
-          The Admin Console is restricted to platform administrators. Public registration for admin accounts is disabled.
-        </p>
-        <button
-          onClick={() => onNavigate('home')}
-          className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 rounded-xl text-xs shadow-md transition cursor-pointer"
-        >
-          Return to Marketplace
-        </button>
-      </div>
-    );
-  }
-
   const fetchData = async () => {
     try {
       setIsLoading(true);
-      const [metRes, venRes] = await Promise.all([
+      const [metRes, venRes, ordRes] = await Promise.all([
         adminAPI.getMetrics(),
         vendorsAPI.getAll(),
+        ordersAPI.getAll(),
       ]);
-      if (metRes.data) setMetrics(metRes.data);
+      if (metRes.data.metrics) setMetrics(metRes.data.metrics);
       if (venRes.data.vendors) setVendors(venRes.data.vendors);
+      if (ordRes.data.orders) setOrders(ordRes.data.orders);
     } catch (err) {
       console.error('Failed to load admin metrics', err);
     } finally {
@@ -97,21 +80,19 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
       return (
         v.businessName.toLowerCase().includes(q) ||
         v.email.toLowerCase().includes(q) ||
-        v.gstin.toLowerCase().includes(q)
+        (v.gstin || v.kycDetails?.gstNumber || '').toLowerCase().includes(q)
       );
     }
     return true;
   });
 
-  const chartData = [
-    { name: 'Mon', gmv: 340000, commission: 34000 },
-    { name: 'Tue', gmv: 520000, commission: 52000 },
-    { name: 'Wed', gmv: 490000, commission: 49000 },
-    { name: 'Thu', gmv: 710000, commission: 71000 },
-    { name: 'Fri', gmv: 890000, commission: 89000 },
-    { name: 'Sat', gmv: 1120000, commission: 112000 },
-    { name: 'Sun', gmv: 1350000, commission: 135000 },
-  ];
+  const chartData = Array.from({ length: 7 }, (_, offset) => {
+    const date = new Date();
+    date.setDate(date.getDate() - (6 - offset));
+    const key = date.toISOString().slice(0, 10);
+    const gmv = orders.filter((order) => order.createdAt?.slice(0, 10) === key).reduce((sum, order) => sum + order.totalAmount, 0);
+    return { name: date.toLocaleDateString('en-IN', { weekday: 'short' }), gmv, commission: Math.round(gmv * 0.1) };
+  });
 
   return (
     <div className="space-y-8 pb-16">
@@ -145,7 +126,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
         {[
           {
             label: 'Total Platform GMV',
-            value: `₹${(metrics?.totalRevenue || 12840000).toLocaleString('en-IN')}`,
+            value: `₹${(metrics?.totalGMV ?? 0).toLocaleString('en-IN')}`,
             sub: '+32.4% this month',
             icon: DollarSign,
             color: 'text-indigo-600',
@@ -153,7 +134,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
           },
           {
             label: 'Platform Commission (10%)',
-            value: `₹${(metrics?.platformCommission || 1284000).toLocaleString('en-IN')}`,
+            value: `₹${(metrics?.platformRevenue ?? 0).toLocaleString('en-IN')}`,
             sub: 'Net platform fee',
             icon: Percent,
             color: 'text-emerald-600',
@@ -161,7 +142,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
           },
           {
             label: 'Registered Merchants',
-            value: metrics?.totalVendors || vendors.length,
+            value: metrics?.totalVendors ?? vendors.length,
             sub: '4 Pending KYC checks',
             icon: Store,
             color: 'text-amber-600',
@@ -169,7 +150,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
           },
           {
             label: 'Total Orders Processed',
-            value: metrics?.totalOrders || 482,
+            value: metrics?.totalOrders ?? 0,
             sub: '99.2% Delivery SLA',
             icon: Package,
             color: 'text-purple-600',
@@ -283,7 +264,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
                       </div>
                     </div>
                   </td>
-                  <td className="p-3 font-mono font-bold text-slate-700">{v.gstin}</td>
+                  <td className="p-3 font-mono font-bold text-slate-700">{v.gstin || v.kycDetails?.gstNumber || '—'}</td>
                   <td className="p-3 font-bold text-indigo-600">{v.commissionRate}%</td>
                   <td className="p-3 font-medium text-slate-600">{v.dispatchTime}</td>
                   <td className="p-3">
@@ -328,4 +309,19 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
       </div>
     </div>
   );
+};
+
+export const AdminDashboard: React.FC<AdminDashboardProps> = (props) => {
+  const { user } = useAuth();
+  if (user?.role !== 'admin') {
+    return (
+      <div className="max-w-md mx-auto my-16 p-8 bg-white rounded-3xl border border-slate-200 shadow-xl text-center space-y-4">
+        <div className="w-14 h-14 bg-rose-50 text-rose-600 rounded-2xl flex items-center justify-center mx-auto"><ShieldCheck className="w-7 h-7" /></div>
+        <h2 className="text-xl font-extrabold text-slate-900 font-heading">Admin Access Required</h2>
+        <p className="text-xs text-slate-500">The Admin Console is restricted to platform administrators.</p>
+        <button onClick={() => props.onNavigate('home')} className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 rounded-xl text-xs shadow-md transition cursor-pointer">Return to Marketplace</button>
+      </div>
+    );
+  }
+  return <AdminDashboardContent {...props} />;
 };

@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { User, UserRole } from '../types';
+import { Address, User, UserRole } from '../types';
 import { authAPI } from '../services/api';
 
 interface AuthContextType {
@@ -8,9 +8,10 @@ interface AuthContextType {
   isAuthenticated: boolean;
   isLoading: boolean;
   login: (credentials: { email: string; password: string }) => Promise<{ success: boolean; message?: string }>;
-  register: (data: { name: string; email: string; password: string; role?: UserRole; phone?: string; businessName?: string }) => Promise<{ success: boolean; message?: string }>;
+  register: (data: { name: string; email: string; password: string; role?: UserRole; phone?: string; businessName?: string; gstin?: string }) => Promise<{ success: boolean; message?: string }>;
   logout: () => void;
-  switchRole: (role: UserRole) => Promise<void>;
+  updateAddresses: (addresses: Address[]) => Promise<boolean>;
+  updateProfile: (data: Pick<User, 'name' | 'phone' | 'avatar'>) => Promise<boolean>;
   openAuthModal: (mode?: 'login' | 'register') => void;
   closeAuthModal: () => void;
   isAuthModalOpen: boolean;
@@ -43,29 +44,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           console.warn('Invalid token on startup, resetting demo state', err);
           localStorage.removeItem('marketnexus_jwt_token');
           setToken(null);
-          await autoLoginDemoBuyer();
         }
-      } else {
-        await autoLoginDemoBuyer();
       }
       setIsLoading(false);
     };
 
     initializeAuth();
   }, []);
-
-  const autoLoginDemoBuyer = async () => {
-    try {
-      const res = await authAPI.switchRole('buyer');
-      if (res.data.token && res.data.user) {
-        setToken(res.data.token);
-        setUser(res.data.user);
-        localStorage.setItem('marketnexus_jwt_token', res.data.token);
-      }
-    } catch (e) {
-      console.error('Failed auto login', e);
-    }
-  };
 
   const login = async (credentials: { email: string; password: string }) => {
     try {
@@ -84,7 +69,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
-  const register = async (data: { name: string; email: string; password: string; role?: UserRole; phone?: string; businessName?: string }) => {
+  const register = async (data: { name: string; email: string; password: string; role?: UserRole; phone?: string; businessName?: string; gstin?: string }) => {
     try {
       const res = await authAPI.register(data);
       if (res.data.token && res.data.user) {
@@ -107,20 +92,30 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     localStorage.removeItem('marketnexus_jwt_token');
   };
 
-  const switchRole = async (role: UserRole) => {
-    setIsLoading(true);
+  const updateAddresses = async (addresses: Address[]) => {
     try {
-      const res = await authAPI.switchRole(role);
-      if (res.data.token && res.data.user) {
-        setToken(res.data.token);
+      const res = await authAPI.updateAddresses(addresses);
+      if (res.data.user) {
         setUser(res.data.user);
-        localStorage.setItem('marketnexus_jwt_token', res.data.token);
+        return true;
       }
     } catch (err) {
-      console.error('Failed to switch role', err);
-    } finally {
-      setIsLoading(false);
+      console.error('Failed to save addresses', err);
     }
+    return false;
+  };
+
+  const updateProfile = async (data: Pick<User, 'name' | 'phone' | 'avatar'>) => {
+    try {
+      const res = await authAPI.updateProfile(data);
+      if (res.data.user) {
+        setUser(res.data.user);
+        return true;
+      }
+    } catch (err) {
+      console.error('Failed to save profile', err);
+    }
+    return false;
   };
 
   const openAuthModal = (mode: 'login' | 'register' = 'login') => {
@@ -142,7 +137,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         login,
         register,
         logout,
-        switchRole,
+        updateAddresses,
+        updateProfile,
         openAuthModal,
         closeAuthModal,
         isAuthModalOpen,

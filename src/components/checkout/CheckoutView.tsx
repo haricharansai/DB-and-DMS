@@ -25,11 +25,12 @@ interface CheckoutViewProps {
 }
 
 export const CheckoutView: React.FC<CheckoutViewProps> = ({ onNavigate }) => {
-  const { cartItems, vendorGroups, grandTotal, subtotal, shippingTotal, tax, discount, clearCart } = useCart();
-  const { user } = useAuth();
+  const { cartItems, vendorGroups, grandTotal, subtotal, shippingTotal, tax, discount, appliedCoupon, clearCart } = useCart();
+  const { user, updateAddresses } = useAuth();
 
   const [currentStep, setCurrentStep] = useState<number>(1);
   const [selectedAddressId, setSelectedAddressId] = useState<string>('addr_1');
+  const [additionalAddresses, setAdditionalAddresses] = useState<Address[]>([]);
   const [isAddingAddress, setIsAddingAddress] = useState<boolean>(false);
   const [isPlacingOrder, setIsPlacingOrder] = useState<boolean>(false);
 
@@ -48,8 +49,9 @@ export const CheckoutView: React.FC<CheckoutViewProps> = ({ onNavigate }) => {
   const [cardCvv, setCardCvv] = useState<string>('•••');
   const [cardHolder, setCardHolder] = useState<string>(user?.name || 'Aarav Patel');
   const [upiId, setUpiId] = useState<string>('aarav.patel@okhdfcbank');
+  const [checkoutError, setCheckoutError] = useState<string | null>(null);
 
-  const addresses: Address[] = user?.savedAddresses || [
+  const defaultAddresses: Address[] = user?.savedAddresses || [
     {
       id: 'addr_1',
       fullName: user?.name || 'Aarav Patel',
@@ -61,10 +63,11 @@ export const CheckoutView: React.FC<CheckoutViewProps> = ({ onNavigate }) => {
       isDefault: true
     }
   ];
+  const addresses = [...defaultAddresses, ...additionalAddresses];
 
-  const handleSaveNewAddress = (e: React.FormEvent) => {
+  const handleSaveNewAddress = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newFullName || !newStreet || !newCity) return;
+    if (!newFullName.trim() || !/^\+?[0-9 ()-]{10,}$/.test(newPhone.trim()) || !newStreet.trim() || !newCity.trim() || !newState.trim() || !/^\d{6}$/.test(newZipCode.trim())) return;
     const newAddr: Address = {
       id: 'addr_' + Date.now(),
       fullName: newFullName,
@@ -74,7 +77,12 @@ export const CheckoutView: React.FC<CheckoutViewProps> = ({ onNavigate }) => {
       state: newState,
       zipCode: newZipCode
     };
-    addresses.push(newAddr);
+    const nextAddresses = [...defaultAddresses, ...additionalAddresses, newAddr];
+    if (!await updateAddresses(nextAddresses)) {
+      setCheckoutError('Unable to save the new address. Please try again.');
+      return;
+    }
+    setAdditionalAddresses((current) => [...current, newAddr]);
     setSelectedAddressId(newAddr.id);
     setIsAddingAddress(false);
   };
@@ -83,6 +91,19 @@ export const CheckoutView: React.FC<CheckoutViewProps> = ({ onNavigate }) => {
 
   const handlePlaceOrder = async () => {
     if (cartItems.length === 0) return;
+    setCheckoutError(null);
+    if (!selectedAddress) {
+      setCheckoutError('Please select a complete shipping address.');
+      return;
+    }
+    if (paymentMethod === 'card' && !(/^[0-9 ]{12,19}$/.test(cardNumber.replace(/[•*]/g, '0').trim()) || cardNumber.includes('••') || cardNumber.includes('â€¢'))) {
+      setCheckoutError('Please enter a valid card number.');
+      return;
+    }
+    if (paymentMethod === 'upi' && !/^[\w.-]+@[\w.-]+$/.test(upiId.trim())) {
+      setCheckoutError('Please enter a valid UPI ID.');
+      return;
+    }
     try {
       setIsPlacingOrder(true);
       const res = await ordersAPI.create({
@@ -97,7 +118,8 @@ export const CheckoutView: React.FC<CheckoutViewProps> = ({ onNavigate }) => {
           vendorName: it.vendorName
         })),
         shippingAddress: selectedAddress,
-        paymentMethod
+        paymentMethod,
+        couponCode: appliedCoupon || undefined
       });
 
       if (res.data && res.data.order) {
@@ -111,8 +133,9 @@ export const CheckoutView: React.FC<CheckoutViewProps> = ({ onNavigate }) => {
         clearCart();
         onNavigate('order-tracking', res.data.order.id);
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('Failed to create order', err);
+      setCheckoutError(err.response?.data?.error || 'Unable to place the order. Please verify your details and try again.');
     } finally {
       setIsPlacingOrder(false);
     }
@@ -476,6 +499,7 @@ export const CheckoutView: React.FC<CheckoutViewProps> = ({ onNavigate }) => {
                 <p className="text-slate-600">{selectedAddress.fullName} • {selectedAddress.street}, {selectedAddress.city} - {selectedAddress.zipCode}</p>
                 <p className="text-slate-500 text-[11px]">Payment Mode: <strong className="uppercase">{paymentMethod}</strong></p>
               </div>
+              {checkoutError && <p className="text-xs font-semibold text-rose-600 bg-rose-50 border border-rose-200 rounded-xl px-3 py-2">{checkoutError}</p>}
 
               <div className="pt-4 flex justify-between items-center">
                 <button

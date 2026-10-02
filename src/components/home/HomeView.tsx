@@ -46,13 +46,13 @@ export const HomeView: React.FC<HomeViewProps> = ({ onNavigate }) => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        setIsLoading(false);
         const [prodRes, catRes, venRes] = await Promise.all([
           productsAPI.getAll({ limit: 24, sort: 'newest' }),
           categoriesAPI.getAll(),
           vendorsAPI.getAll(),
         ]);
-        if (prodRes.data.products) setProducts(prodRes.data.products);
+        const loadedProducts = prodRes.data.products || [];
+        if (prodRes.data.products) setProducts(loadedProducts);
         if (catRes.data.categories) setCategories(catRes.data.categories);
         if (venRes.data.vendors) setVendors(venRes.data.vendors);
         try {
@@ -60,10 +60,12 @@ export const HomeView: React.FC<HomeViewProps> = ({ onNavigate }) => {
           setRecommendations(recommendationResponse.data.products || []);
           setRecommendationReasons(recommendationResponse.data.reasons || {});
         } catch (err) {
-          setRecommendations(products.filter((product) => product.isFeatured || product.isTrending).slice(0, 8));
+          setRecommendations(loadedProducts.filter((product) => product.isFeatured || product.isTrending).slice(0, 8));
         }
       } catch (err) {
         console.error('Failed to load home data', err);
+      } finally {
+        setIsLoading(false);
       }
     };
     fetchData();
@@ -74,7 +76,7 @@ export const HomeView: React.FC<HomeViewProps> = ({ onNavigate }) => {
         if (prev.seconds > 0) return { ...prev, seconds: prev.seconds - 1 };
         if (prev.minutes > 0) return { ...prev, minutes: 59, seconds: 59 };
         if (prev.hours > 0) return { hours: prev.hours - 1, minutes: 59, seconds: 59 };
-        return { hours: 12, minutes: 0, seconds: 0 };
+        return prev;
       });
     }, 1000);
 

@@ -1,4 +1,5 @@
 import express, { Request, Response } from 'express';
+import crypto from 'crypto';
 import { db } from './db';
 import {
   generateToken,
@@ -18,7 +19,7 @@ const router = express.Router();
 
 router.post('/auth/register', async (req: Request, res: Response) => {
   try {
-    const { name, email, password, role = 'buyer', phone, businessName } = req.body;
+    const { name, email, password, role = 'buyer', phone, businessName, gstin } = req.body;
 
     if (!name || !email || !password) {
       return res.status(400).json({ success: false, error: 'Name, email, and password are required' });
@@ -53,9 +54,9 @@ router.post('/auth/register', async (req: Request, res: Response) => {
         dispatchTime: '1-2 Business Days',
         city: 'Mumbai, MH',
         kycDetails: {
-          gstNumber: '27PENDING1234',
-          panNumber: 'PENDING123',
-          businessLicense: 'BL-NEW-2025',
+          gstNumber: gstin || '',
+          panNumber: '',
+          businessLicense: '',
           documentUrl: '',
           submittedAt: new Date().toISOString()
         },
@@ -99,6 +100,9 @@ router.post('/auth/register', async (req: Request, res: Response) => {
     });
 
     const { passwordHash: _, ...safeUser } = newUser;
+    const userWithProfile = vendorId
+      ? { ...safeUser, vendorProfile: db.findById('vendors', vendorId) }
+      : safeUser;
 
     // Log in audit
     db.insertOne('audit_logs', {
@@ -110,7 +114,7 @@ router.post('/auth/register', async (req: Request, res: Response) => {
     res.status(201).json({
       success: true,
       token,
-      user: safeUser
+      user: userWithProfile
     });
   } catch (err: any) {
     res.status(500).json({ success: false, error: err.message || 'Registration failed' });
@@ -164,29 +168,28 @@ router.get('/auth/me', authenticateJWT, (req: AuthenticatedRequest, res: Respons
   res.json({ success: true, user: safeUser });
 });
 
-router.post('/auth/switch-role', (req: Request, res: Response) => {
-  const { targetRole, email } = req.body;
-  const user = db.findOne('users', { role: targetRole });
-  if (!user) {
-    return res.status(404).json({ success: false, error: `No demo account found for role ${targetRole}` });
+router.put('/auth/me/addresses', authenticateJWT, (req: AuthenticatedRequest, res: Response) => {
+  const { addresses } = req.body;
+  if (!Array.isArray(addresses) || addresses.length > 20) return res.status(400).json({ success: false, error: 'A valid address list is required' });
+  const required = ['id', 'fullName', 'phone', 'street', 'city', 'state', 'zipCode'];
+  if (addresses.some((address: any) => !address || required.some((field) => !String(address[field] || '').trim()) || !/^\+?[0-9 ()-]{10,}$/.test(String(address.phone)) || !/^\d{6}$/.test(String(address.zipCode)))) {
+    return res.status(400).json({ success: false, error: 'Each address must be complete and valid' });
   }
+  const result = db.updateOne('users', { id: req.user!.userId }, { savedAddresses: addresses });
+  if (!result.doc) return res.status(404).json({ success: false, error: 'User not found' });
+  const { passwordHash: _, ...safeUser } = result.doc;
+  res.json({ success: true, user: safeUser });
+});
 
-  const token = generateToken({
-    userId: user.id || user._id,
-    email: user.email,
-    role: user.role,
-    vendorId: user.vendorId,
-    name: user.name
-  });
-
-  const { passwordHash: _, ...safeUser } = user;
-
-  res.json({
-    success: true,
-    token,
-    user: safeUser,
-    message: `Switched session to ${targetRole.toUpperCase()} mode`
-  });
+router.put('/auth/me', authenticateJWT, (req: AuthenticatedRequest, res: Response) => {
+  const { name, phone, avatar } = req.body;
+  if (typeof name !== 'string' || !name.trim() || typeof phone !== 'string' || !/^\+?[0-9 ()-]{10,}$/.test(phone.trim())) {
+    return res.status(400).json({ success: false, error: 'A valid name and phone number are required' });
+  }
+  const result = db.updateOne('users', { id: req.user!.userId }, { name: name.trim(), phone: phone.trim(), ...(typeof avatar === 'string' ? { avatar: avatar.trim() } : {}) });
+  if (!result.doc) return res.status(404).json({ success: false, error: 'User not found' });
+  const { passwordHash: _, ...safeUser } = result.doc;
+  res.json({ success: true, user: safeUser });
 });
 
 // ==========================================
@@ -382,35 +385,55 @@ router.get('/orders', authenticateJWT, (req: AuthenticatedRequest, res: Response
   res.json({ success: true, orders });
 });
 
-router.get('/orders/:id', (req: Request, res: Response) => {
+router.get('/orders/:id', authenticateJWT, (req: AuthenticatedRequest, res: Response) => {
   const order = db.findById('orders', req.params.id);
   if (!order) {
     return res.status(404).json({ success: false, error: 'Order not found' });
   }
+  const canView = req.user!.role === 'admin' || order.userId === req.user!.userId ||
+    (req.user!.role === 'vendor' && order.subOrders?.some((subOrder: any) => subOrder.vendorId === req.user!.vendorId));
+  if (!canView) return res.status(403).json({ success: false, error: 'You are not allowed to view this order' });
   res.json({ success: true, order });
 });
 
-router.post('/orders', authenticateJWT, (req: AuthenticatedRequest, res: Response) => {
+router.post('/orders', authenticateJWT, async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const { items, shippingAddress, paymentMethod = 'card' } = req.body;
+    const { items, shippingAddress, paymentMethod = 'card', couponCode } = req.body;
 
     if (!items || items.length === 0) {
       return res.status(400).json({ success: false, error: 'Order must contain at least one item' });
     }
+    if (!['card', 'upi', 'netbanking', 'cod'].includes(paymentMethod)) {
+      return res.status(400).json({ success: false, error: 'Invalid payment method' });
+    }
+    const requiredAddressFields = ['fullName', 'phone', 'street', 'city', 'state', 'zipCode'];
+    if (!shippingAddress || requiredAddressFields.some(field => !String(shippingAddress[field] || '').trim()) || !/^\+?[0-9 ()-]{10,}$/.test(String(shippingAddress.phone)) || !/^\d{6}$/.test(String(shippingAddress.zipCode))) {
+      return res.status(400).json({ success: false, error: 'A complete and valid shipping address is required' });
+    }
 
-    const orderId = 'ord_' + Math.floor(1000000 + Math.random() * 9000000);
-    const trackingCode = 'FDX-' + Math.floor(100000000 + Math.random() * 900000000);
+    const orderId = `ord_${crypto.randomUUID()}`;
+    const trackingCode = `FDX-${crypto.randomUUID().replace(/-/g, '').slice(0, 12).toUpperCase()}`;
 
     // Group items by vendor
     const vendorMap: Record<string, any[]> = {};
+    const validatedItems: any[] = [];
     let subtotal = 0;
 
     for (const item of items) {
-      subtotal += item.price * item.quantity;
-      if (!vendorMap[item.vendorId]) {
-        vendorMap[item.vendorId] = [];
+      const quantity = Number(item.quantity);
+      if (!item.productId || !Number.isInteger(quantity) || quantity < 1) return res.status(400).json({ success: false, error: 'Each item must have a valid quantity' });
+      const product = await db.findCatalogProduct(String(item.productId));
+      if (!product || Number(product.stock || 0) < quantity) return res.status(409).json({ success: false, error: `Insufficient stock for ${item.title || item.productId}` });
+      const vendorId = String(product.vendorId || '');
+      if (!vendorId) return res.status(409).json({ success: false, error: 'Product is not assigned to a vendor' });
+      const vendor = await db.findVendor(vendorId);
+      const normalizedItem = { ...item, title: product.title, price: Number(product.price), quantity, vendorId, vendorName: product.vendorName || vendor?.businessName || 'Verified Merchant', thumbnail: product.thumbnail };
+      validatedItems.push(normalizedItem);
+      subtotal += normalizedItem.price * quantity;
+      if (!vendorMap[vendorId]) {
+        vendorMap[vendorId] = [];
       }
-      vendorMap[item.vendorId].push(item);
+      vendorMap[vendorId].push(normalizedItem);
     }
 
     const subOrders = Object.keys(vendorMap).map(vId => {
@@ -418,7 +441,7 @@ router.post('/orders', authenticateJWT, (req: AuthenticatedRequest, res: Respons
       const vendorName = vItems[0].vendorName || 'Verified Merchant';
       const vSubtotal = vItems.reduce((sum: number, it: any) => sum + it.price * it.quantity, 0);
 
-      const subTracking = 'FDX-' + Math.floor(100000000 + Math.random() * 900000000);
+      const subTracking = `FDX-${crypto.randomUUID().replace(/-/g, '').slice(0, 12).toUpperCase()}`;
 
       const milestones = [
         { status: 'placed', label: 'Order Placed', description: `Order ${orderId} confirmed with online payment.`, timestamp: new Date().toISOString(), completed: true, current: false },
@@ -445,7 +468,14 @@ router.post('/orders', authenticateJWT, (req: AuthenticatedRequest, res: Respons
 
     const shippingTotal = subOrders.reduce((sum, so) => sum + so.shippingFee, 0);
     const tax = Math.round(subtotal * 0.18 * 100) / 100; // 18% GST
-    const discount = subtotal > 50000 ? 2500 : 0;
+    const normalizedCoupon = String(couponCode || '').trim().toUpperCase();
+    const discount = normalizedCoupon === 'NEXUSFEST'
+      ? Math.round(subtotal * 0.15)
+      : normalizedCoupon === 'SAVE10'
+      ? Math.round(subtotal * 0.10)
+      : normalizedCoupon === 'FIRST500'
+      ? Math.min(500, subtotal)
+      : 0;
     const totalAmount = subtotal + tax + shippingTotal - discount;
 
     const newOrder = db.insertOne('orders', {
@@ -463,7 +493,7 @@ router.post('/orders', authenticateJWT, (req: AuthenticatedRequest, res: Respons
         state: 'Karnataka',
         zipCode: '560038'
       },
-      items,
+      items: validatedItems,
       subOrders,
       subtotal,
       tax,
@@ -471,16 +501,16 @@ router.post('/orders', authenticateJWT, (req: AuthenticatedRequest, res: Respons
       discount,
       totalAmount,
       paymentMethod,
-      paymentStatus: 'paid',
+      paymentStatus: 'pending',
       status: 'confirmed',
       overallTrackingNumber: trackingCode
     });
 
     // Reduce stock
-    for (const item of items) {
-      const prod = db.findById('products', item.productId);
+    for (const item of validatedItems) {
+      const prod = await db.findCatalogProduct(String(item.productId));
       if (prod) {
-        db.updateOne('products', { id: prod.id }, { stock: Math.max(0, prod.stock - item.quantity) });
+        await db.updateCatalogProduct(String(prod.id || prod._id), { stock: Math.max(0, Number(prod.stock || 0) - item.quantity) });
       }
     }
 
@@ -503,9 +533,15 @@ router.put('/orders/:id/status', authenticateJWT, (req: AuthenticatedRequest, re
   if (!order) {
     return res.status(404).json({ success: false, error: 'Order not found' });
   }
+  if (!['confirmed', 'processing', 'shipped', 'out_for_delivery', 'delivered', 'cancelled'].includes(status)) {
+    return res.status(400).json({ success: false, error: 'Invalid order status' });
+  }
 
   // If vendor updating their subOrder
   if (vendorId && order.subOrders) {
+    if (req.user!.role !== 'admin' && (req.user!.role !== 'vendor' || req.user!.vendorId !== vendorId)) {
+      return res.status(403).json({ success: false, error: 'You can only update your own vendor orders' });
+    }
     for (const so of order.subOrders) {
       if (so.vendorId === vendorId) {
         so.status = status;
@@ -522,6 +558,7 @@ router.put('/orders/:id/status', authenticateJWT, (req: AuthenticatedRequest, re
       }
     }
   } else {
+    if (req.user!.role !== 'admin') return res.status(403).json({ success: false, error: 'Only admins can update the overall order status' });
     order.status = status;
   }
 
@@ -543,16 +580,18 @@ router.get('/reviews', (req: Request, res: Response) => {
 
 router.post('/reviews', authenticateJWT, (req: AuthenticatedRequest, res: Response) => {
   const { productId, rating, title, comment } = req.body;
-  if (!productId || !rating || !comment) {
+  const numericRating = Number(rating);
+  if (!productId || !Number.isInteger(numericRating) || numericRating < 1 || numericRating > 5 || typeof comment !== 'string' || comment.trim().length < 5 || comment.length > 2000) {
     return res.status(400).json({ success: false, error: 'Product ID, rating, and comment are required' });
   }
+  if (!db.findById('products', productId)) return res.status(404).json({ success: false, error: 'Product not found' });
 
   const newReview = db.insertOne('reviews', {
     productId,
     userId: req.user?.userId || 'u_guest',
     userName: req.user?.name || 'Customer',
     userAvatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80',
-    rating: Number(rating),
+    rating: numericRating,
     title: title || 'Product Review',
     comment,
     isVerifiedPurchase: true,
@@ -571,7 +610,66 @@ router.post('/reviews', authenticateJWT, (req: AuthenticatedRequest, res: Respon
 });
 
 // ==========================================
-// 6. ADMIN & MODERATION METRICS
+// 6. AI, MEDIA, RECOMMENDATIONS & EVENTS
+// ==========================================
+
+router.get('/recommendations', (req: Request, res: Response) => {
+  const limit = Math.min(Math.max(Number(req.query.limit) || 6, 1), 24);
+  const productId = String(req.query.productId || '');
+  const products = db.find('products', {}).filter((product: any) => product.id !== productId).slice(0, limit);
+  const reasons = Object.fromEntries(products.map((product: any) => [product.id, 'Popular in the marketplace']));
+  res.json({ success: true, products, reasons, fallback: true });
+});
+
+router.post('/events', optionalAuth, (req: AuthenticatedRequest, res: Response) => {
+  const { eventType, sessionId, productId, query, metadata, occurredAt, anonymousId, consentVersion } = req.body;
+  if (!eventType || !sessionId) return res.status(400).json({ success: false, error: 'eventType and sessionId are required' });
+  const event = db.insertOne('product_events', {
+    eventType, sessionId, productId, query, metadata, occurredAt: occurredAt || new Date().toISOString(),
+    anonymousId, consentVersion, userId: req.user?.userId
+  });
+  res.status(201).json({ success: true, event });
+});
+
+router.post('/ai/search', (req: Request, res: Response) => {
+  const query = String(req.body.query || '').trim().toLowerCase();
+  const limit = Math.min(Math.max(Number(req.body.limit) || 20, 1), 50);
+  const products = db.find('products', {}).filter((product: any) => {
+    if (!query) return true;
+    return [product.title, product.description, product.brand, product.category, product.vendorName]
+      .filter(Boolean).join(' ').toLowerCase().includes(query);
+  }).slice(0, limit);
+  res.json({ success: true, products, results: products.map((product: any) => ({ product, score: 1, reason: 'Keyword match' })), fallback: true, message: 'Keyword search used.' });
+});
+
+router.post('/ai/visual-search', (req: Request, res: Response) => {
+  const limit = Math.min(Math.max(Number(req.body.limit) || 12, 1), 50);
+  const products = db.find('products', {}).slice(0, limit);
+  res.json({ success: true, products, results: products.map((product: any) => ({ product, similarity: 0 })), fallback: true, message: 'Visual similarity service is not configured; showing catalog results.' });
+});
+
+router.post('/ai/products/draft', authenticateJWT, authorizeRoles('vendor', 'admin'), (req: AuthenticatedRequest, res: Response) => {
+  const rawTitle = String(req.body.rawTitle || '').trim();
+  const rawDescription = String(req.body.rawDescription || '').trim();
+  const category = String(req.body.category || 'general');
+  const title = rawTitle || `${category} product`;
+  res.json({ success: true, title, description: rawDescription || `Discover the features and benefits of this ${category} product.`, attributes: req.body.rawSpecifications || {}, tags: [category], colors: [], altTextByMediaId: {}, confidence: 0.5, warnings: ['AI provider is not configured; deterministic draft generated.'] });
+});
+
+router.post('/media/upload-signature', authenticateJWT, authorizeRoles('vendor', 'admin'), (req: AuthenticatedRequest, res: Response) => {
+  const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
+  const apiKey = process.env.CLOUDINARY_API_KEY;
+  const apiSecret = process.env.CLOUDINARY_API_SECRET;
+  if (!cloudName || !apiKey || !apiSecret) return res.status(503).json({ success: false, error: 'Media upload service is not configured' });
+  const timestamp = Math.floor(Date.now() / 1000);
+  const folder = String(req.body.folder || 'marketnexus/products');
+  const publicId = String(req.body.publicId || `product_${Date.now()}`);
+  const signature = crypto.createHash('sha1').update(`folder=${folder}&public_id=${publicId}&timestamp=${timestamp}${apiSecret}`).digest('hex');
+  res.json({ success: true, cloudName, apiKey, signature, timestamp, publicId, folder, resourceType: req.body.resourceType || 'image', tags: req.body.tags || [], uploadUrl: `https://api.cloudinary.com/v1_1/${cloudName}/image/upload` });
+});
+
+// ==========================================
+// 7. ADMIN & MODERATION METRICS
 // ==========================================
 
 router.get('/admin/metrics', authenticateJWT, authorizeRoles('admin'), (req: AuthenticatedRequest, res: Response) => {
@@ -634,11 +732,25 @@ router.post('/admin/vendors/:id/reject', authenticateJWT, authorizeRoles('admin'
   res.json({ success: true, vendor: result.doc });
 });
 
+router.put('/admin/vendors/:id/status', authenticateJWT, authorizeRoles('admin'), (req: AuthenticatedRequest, res: Response) => {
+  const { status } = req.body;
+  if (!['approved', 'pending', 'suspended', 'rejected'].includes(status)) {
+    return res.status(400).json({ success: false, error: 'Invalid vendor status' });
+  }
+  const result = db.updateOne('vendors', { id: req.params.id }, {
+    status,
+    isVerified: status === 'approved',
+    ...(status === 'approved' ? { badge: 'Verified Merchant' } : {})
+  });
+  if (result.matchedCount === 0) return res.status(404).json({ success: false, error: 'Vendor not found' });
+  res.json({ success: true, vendor: result.doc });
+});
+
 // ==========================================
 // 7. MONGODB COMPASS STUDIO & QUERY ENGINE
 // ==========================================
 
-router.get('/mongodb/collections', (req: Request, res: Response) => {
+router.get('/mongodb/collections', authenticateJWT, authorizeRoles('admin'), (req: AuthenticatedRequest, res: Response) => {
   const stats = db.getCollectionStats();
   res.json({
     success: true,
@@ -649,13 +761,13 @@ router.get('/mongodb/collections', (req: Request, res: Response) => {
   });
 });
 
-router.get('/mongodb/collections/:name', (req: Request, res: Response) => {
+router.get('/mongodb/collections/:name', authenticateJWT, authorizeRoles('admin'), (req: AuthenticatedRequest, res: Response) => {
   const { name } = req.params;
   const docs = db.find(name, {}, { limit: 100 });
   res.json({ success: true, collection: name, count: docs.length, documents: docs });
 });
 
-router.post('/mongodb/query', (req: Request, res: Response) => {
+router.post('/mongodb/query', authenticateJWT, authorizeRoles('admin'), (req: AuthenticatedRequest, res: Response) => {
   const { collection, filter = {}, sort = {}, limit = 50, skip = 0 } = req.body;
 
   if (!collection) {
@@ -671,6 +783,7 @@ router.post('/mongodb/query', (req: Request, res: Response) => {
     success: true,
     collection,
     query: { filter, sort, limit, skip },
+    total: count,
     executionStats: {
       executionTimeMs: `${executionTimeMs}ms`,
       totalDocsExamined: count,
@@ -681,19 +794,39 @@ router.post('/mongodb/query', (req: Request, res: Response) => {
   });
 });
 
-router.post('/mongodb/collections/:name', (req: Request, res: Response) => {
+router.post('/mongodb/aggregate', authenticateJWT, authorizeRoles('admin'), async (req: AuthenticatedRequest, res: Response) => {
+  const { collection, pipeline = [] } = req.body;
+  if (!collection || !Array.isArray(pipeline)) return res.status(400).json({ success: false, error: 'Collection and pipeline are required' });
+  const mongo = await db.getMongoDb();
+  if (mongo) {
+    const documents = await mongo.collection(collection).aggregate(pipeline).toArray();
+    return res.json({ success: true, documents });
+  }
+  const matchStage = pipeline.find((stage: any) => stage.$match)?.$match || {};
+  res.json({ success: true, documents: db.find(collection, matchStage, { limit: 100 }), fallback: true });
+});
+
+router.get('/mongodb/collections/:name/indexes', authenticateJWT, authorizeRoles('admin'), async (req: AuthenticatedRequest, res: Response) => {
+  const mongo = await db.getMongoDb();
+  const indexes = mongo
+    ? await mongo.collection(req.params.name).indexes()
+    : [{ name: '_id_', key: { _id: 1 }, unique: true }];
+  res.json({ success: true, indexes });
+});
+
+router.post('/mongodb/collections/:name', authenticateJWT, authorizeRoles('admin'), (req: AuthenticatedRequest, res: Response) => {
   const { name } = req.params;
   const newDoc = db.insertOne(name, req.body);
   res.status(201).json({ success: true, document: newDoc });
 });
 
-router.put('/mongodb/collections/:name/:id', (req: Request, res: Response) => {
+router.put('/mongodb/collections/:name/:id', authenticateJWT, authorizeRoles('admin'), (req: AuthenticatedRequest, res: Response) => {
   const { name, id } = req.params;
   const result = db.updateOne(name, { id }, req.body);
   res.json({ success: true, ...result });
 });
 
-router.delete('/mongodb/collections/:name/:id', (req: Request, res: Response) => {
+router.delete('/mongodb/collections/:name/:id', authenticateJWT, authorizeRoles('admin'), (req: AuthenticatedRequest, res: Response) => {
   const { name, id } = req.params;
   const result = db.deleteOne(name, { id });
   res.json({ success: true, ...result });

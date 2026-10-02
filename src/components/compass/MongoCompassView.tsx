@@ -37,6 +37,8 @@ export const MongoCompassView: React.FC = () => {
   const [editDocJson, setEditDocJson] = useState('');
   const [isInserting, setIsInserting] = useState(false);
   const [queryError, setQueryError] = useState<string | null>(null);
+  const [aggregationResult, setAggregationResult] = useState<any[]>([]);
+  const [indexes, setIndexes] = useState<any[]>([]);
 
   const fetchCollections = async () => {
     try {
@@ -137,6 +139,30 @@ export const MongoCompassView: React.FC = () => {
     }
   };
 
+  const loadIndexes = async () => {
+    try {
+      const response = await compassAPI.getIndexes(selectedColl);
+      setIndexes(response.data.indexes || []);
+    } catch (err) {
+      console.error('Failed to load indexes', err);
+      setIndexes([]);
+    }
+  };
+
+  const executeAggregation = async () => {
+    try {
+      const pipeline = [{ $match: { category: 'electronics', stock: { $gt: 0 } } }, { $group: { _id: '$brand', totalProducts: { $sum: 1 }, avgPrice: { $avg: '$price' } } }];
+      const response = await compassAPI.aggregate(selectedColl, pipeline);
+      setAggregationResult(response.data.documents || []);
+    } catch (err) {
+      setQueryError('Aggregation failed.');
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab === 'indexes') void loadIndexes();
+  }, [activeTab, selectedColl]);
+
   return (
     <div className="space-y-6 pb-16 font-sans">
       {/* Compass Connection Header */}
@@ -161,7 +187,7 @@ export const MongoCompassView: React.FC = () => {
 
         <div className="flex items-center gap-2">
           <button
-            onClick={() => { fetchCollections(); fetchDocuments(selectedColl); }}
+            onClick={() => { setFilterQuery('{}'); setSortQuery('{}'); fetchCollections(); fetchDocuments(selectedColl, '{}', '{}'); }}
             className="bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold px-3 py-2 rounded-xl flex items-center gap-1.5 transition border border-slate-700"
           >
             <RefreshCw className="w-3.5 h-3.5 text-emerald-400" />
@@ -434,13 +460,14 @@ export const MongoCompassView: React.FC = () => {
 
               <div className="flex justify-end">
                 <button
-                  onClick={() => alert('Aggregation pipeline executed on server in 4.2ms')}
+                  onClick={executeAggregation}
                   className="bg-emerald-600 text-white text-xs font-bold px-4 py-2 rounded-xl flex items-center gap-1.5"
                 >
                   <Play className="w-3.5 h-3.5 fill-white" />
                   <span>Execute Aggregation</span>
                 </button>
               </div>
+              {aggregationResult.length > 0 && <pre className="max-h-64 overflow-auto rounded-xl bg-slate-950 p-4 text-xs text-emerald-400">{JSON.stringify(aggregationResult, null, 2)}</pre>}
             </div>
           )}
 
@@ -458,26 +485,7 @@ export const MongoCompassView: React.FC = () => {
                       <th className="p-3 text-right">Size</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    <tr>
-                      <td className="p-3 font-bold text-slate-900">_id_</td>
-                      <td className="p-3 text-emerald-700 font-semibold">{'{ _id: 1 }'}</td>
-                      <td className="p-3"><span className="bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded text-[10px] font-bold">UNIQUE</span></td>
-                      <td className="p-3 text-right text-slate-500">16 KB</td>
-                    </tr>
-                    <tr>
-                      <td className="p-3 font-bold text-slate-900">category_1_price_-1</td>
-                      <td className="p-3 text-emerald-700 font-semibold">{'{ category: 1, price: -1 }'}</td>
-                      <td className="p-3"><span className="bg-slate-100 text-slate-600 px-2 py-0.5 rounded text-[10px]">COMPOUND</span></td>
-                      <td className="p-3 text-right text-slate-500">24 KB</td>
-                    </tr>
-                    <tr>
-                      <td className="p-3 font-bold text-slate-900">vendorId_1</td>
-                      <td className="p-3 text-emerald-700 font-semibold">{'{ vendorId: 1 }'}</td>
-                      <td className="p-3"><span className="bg-slate-100 text-slate-600 px-2 py-0.5 rounded text-[10px]">STANDARD</span></td>
-                      <td className="p-3 text-right text-slate-500">12 KB</td>
-                    </tr>
-                  </tbody>
+                  <tbody className="divide-y divide-slate-100">{indexes.map((index) => <tr key={index.name}><td className="p-3 font-bold text-slate-900">{index.name}</td><td className="p-3 text-emerald-700 font-semibold">{JSON.stringify(index.key)}</td><td className="p-3">{index.unique ? <span className="bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded text-[10px] font-bold">UNIQUE</span> : <span className="bg-slate-100 text-slate-600 px-2 py-0.5 rounded text-[10px]">STANDARD</span>}</td><td className="p-3 text-right text-slate-500">—</td></tr>)}</tbody>
                 </table>
               </div>
             </div>
@@ -489,20 +497,20 @@ export const MongoCompassView: React.FC = () => {
               <h3 className="text-sm font-extrabold text-slate-900 font-heading">MongoDB WiredTiger Engine Telemetry</h3>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                 <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-200 space-y-1">
-                  <p className="text-[10px] font-bold text-slate-500 uppercase">Memory Resident</p>
-                  <p className="text-lg font-bold font-mono text-slate-900">142.8 MB</p>
+                  <p className="text-[10px] font-bold text-slate-500 uppercase">Collections</p>
+                  <p className="text-lg font-bold font-mono text-slate-900">{collections.length}</p>
                 </div>
                 <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-200 space-y-1">
-                  <p className="text-[10px] font-bold text-slate-500 uppercase">Active Connections</p>
-                  <p className="text-lg font-bold font-mono text-emerald-600">8 / 100</p>
+                  <p className="text-[10px] font-bold text-slate-500 uppercase">Selected Collection</p>
+                  <p className="text-lg font-bold font-mono text-emerald-600">{selectedColl}</p>
                 </div>
                 <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-200 space-y-1">
-                  <p className="text-[10px] font-bold text-slate-500 uppercase">Total Opcounters</p>
-                  <p className="text-lg font-bold font-mono text-slate-900">12,490 ops/s</p>
+                  <p className="text-[10px] font-bold text-slate-500 uppercase">Matching Documents</p>
+                  <p className="text-lg font-bold font-mono text-slate-900">{totalDocs}</p>
                 </div>
                 <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-200 space-y-1">
-                  <p className="text-[10px] font-bold text-slate-500 uppercase">Cache Dirty Bytes</p>
-                  <p className="text-lg font-bold font-mono text-indigo-600">0.02%</p>
+                  <p className="text-[10px] font-bold text-slate-500 uppercase">Loaded Documents</p>
+                  <p className="text-lg font-bold font-mono text-indigo-600">{documents.length}</p>
                 </div>
               </div>
             </div>

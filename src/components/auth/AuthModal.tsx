@@ -7,7 +7,6 @@ import {
   Store,
   ShieldCheck,
   ArrowRight,
-  Sparkles,
   Key
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
@@ -20,7 +19,6 @@ export const AuthModal: React.FC = () => {
     openAuthModal,
     login,
     register,
-    quickLoginAs,
   } = useAuth();
 
   const [email, setEmail] = useState('');
@@ -247,38 +245,6 @@ export const AuthModal: React.FC = () => {
           </button>
         </form>
 
-        {/* Demo Fast Login Switcher */}
-        <div className="pt-3 border-t border-slate-100 space-y-2">
-          <p className="text-[11px] font-bold text-slate-400 text-center uppercase tracking-wider flex items-center justify-center gap-1">
-            <Sparkles className="w-3 h-3 text-amber-500" /> One-Click Demo Role Accounts
-          </p>
-
-          <div className="grid grid-cols-3 gap-2">
-            <button
-              onClick={() => quickLoginAs('buyer')}
-              className="bg-slate-50 hover:bg-slate-100 border border-slate-200 p-2 rounded-xl text-center transition"
-            >
-              <p className="text-[10px] font-bold text-indigo-600 uppercase">Customer</p>
-              <p className="text-[11px] text-slate-700 font-semibold truncate">Aarav Patel</p>
-            </button>
-
-            <button
-              onClick={() => quickLoginAs('vendor')}
-              className="bg-slate-50 hover:bg-slate-100 border border-slate-200 p-2 rounded-xl text-center transition"
-            >
-              <p className="text-[10px] font-bold text-emerald-600 uppercase">Vendor</p>
-              <p className="text-[11px] text-slate-700 font-semibold truncate">SonicPulse</p>
-            </button>
-
-            <button
-              onClick={() => quickLoginAs('admin')}
-              className="bg-slate-50 hover:bg-slate-100 border border-slate-200 p-2 rounded-xl text-center transition"
-            >
-              <p className="text-[10px] font-bold text-purple-600 uppercase">Admin</p>
-              <p className="text-[11px] text-slate-700 font-semibold truncate">Super Admin</p>
-            </button>
-          </div>
-        </div>
       </div>
     </div>
   );

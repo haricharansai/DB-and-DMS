@@ -130,9 +130,16 @@ export const CatalogView: React.FC<CatalogViewProps> = ({ initialFilter, onNavig
   const { addToCart, toggleWishlist, isInWishlist } = useCart();
   const { addToCompare, isInCompare } = useComparison();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const catalogRequestSequence = useRef(0);
+  const searchAnalyticsTimer = useRef<number | null>(null);
+
+  useEffect(() => () => {
+    if (searchAnalyticsTimer.current) window.clearTimeout(searchAnalyticsTimer.current);
+  }, []);
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [vendors, setVendors] = useState<Vendor[]>([]);
+  const [metadataLoaded, setMetadataLoaded] = useState(false);
   const [facets, setFacets] = useState<ProductFacets>(emptyFacets);
   const [pagination, setPagination] = useState<PaginationMeta>(() => makePagination(initialHash.page || 1, initialHash.limit || DEFAULT_LIMIT, 0));
   const [isLoading, setIsLoading] = useState(true);
@@ -160,9 +167,20 @@ export const CatalogView: React.FC<CatalogViewProps> = ({ initialFilter, onNavig
   const [recommendations, setRecommendations] = useState<Product[]>([]);
   const [recommendationReasons, setRecommendationReasons] = useState<Record<string, string>>({});
   const [visualFile, setVisualFile] = useState<File | null>(null);
+  const [visualPreviewUrl, setVisualPreviewUrl] = useState<string | null>(null);
   const [visualResults, setVisualResults] = useState<Product[]>([]);
   const [visualLoading, setVisualLoading] = useState(false);
   const [visualError, setVisualError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!visualFile) {
+      setVisualPreviewUrl(null);
+      return;
+    }
+    const url = URL.createObjectURL(visualFile);
+    setVisualPreviewUrl(url);
+    return () => URL.revokeObjectURL(url);
+  }, [visualFile]);
   const [appliedInitialFilter, setAppliedInitialFilter] = useState(!initialFilter || initialHash.hasQuery);
 
   const catalogParams = useMemo<ProductQueryParams>(() => ({
@@ -191,7 +209,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({ initialFilter, onNavig
   const hasActiveFilters = selectedCategory !== 'all' || selectedBrands.length > 0 || selectedVendors.length > 0 || minPrice > 0 || priceRange < DEFAULT_MAX_PRICE || minRating > 0 || onlyInStock || featuredOnly || trendingOnly || flashDealsOnly || statusFilter !== 'published' || searchFilter.trim() !== '';
 
   const loadCatalog = async () => {
-    const requestId = `${pagination.page}:${pagination.limit}:${JSON.stringify(catalogParams)}:${aiSearchMode}`;
+    const requestSequence = ++catalogRequestSequence.current;
     setIsPageLoading(true);
     setError(null);
     try {
@@ -217,6 +235,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({ initialFilter, onNavig
       }
 
       if (!response.products) throw new Error('The catalog response did not include products.');
+      if (requestSequence !== catalogRequestSequence.current) return;
       setProducts(response.products);
       setFacets(response.facets || emptyFacets());
       setPagination((current) => response.pagination ? {
@@ -226,10 +245,11 @@ export const CatalogView: React.FC<CatalogViewProps> = ({ initialFilter, onNavig
       } : makePagination(current.page, current.limit, response.products.length));
       setIsLoading(false);
     } catch (err) {
+      if (requestSequence !== catalogRequestSequence.current) return;
       setError(err instanceof Error ? err.message : 'Unable to load the catalog.');
       setIsLoading(false);
     } finally {
-      setIsPageLoading(false);
+      if (requestSequence === catalogRequestSequence.current) setIsPageLoading(false);
     }
   };
 
@@ -248,8 +268,12 @@ export const CatalogView: React.FC<CatalogViewProps> = ({ initialFilter, onNavig
         if (!active) return;
         setCategories(categoryResponse.data.categories || []);
         setVendors(vendorResponse.data.vendors || []);
+        setMetadataLoaded(true);
       } catch (err) {
-        if (active) setError(err instanceof Error ? err.message : 'Unable to load catalog filters.');
+        if (active) {
+          setMetadataLoaded(true);
+          setError(err instanceof Error ? err.message : 'Unable to load catalog filters.');
+        }
       }
     };
     void loadMetadata();
@@ -259,7 +283,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({ initialFilter, onNavig
   }, [retryKey]);
 
   useEffect(() => {
-    if (appliedInitialFilter || !initialFilter) return;
+    if (appliedInitialFilter || !initialFilter || !metadataLoaded) return;
     if (initialFilter === 'deals') {
       setFlashDealsOnly(true);
     } else if (categories.some((category) => category.slug === initialFilter || category.id === initialFilter)) {
@@ -270,7 +294,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({ initialFilter, onNavig
       setSearchFilter(initialFilter);
     }
     setAppliedInitialFilter(true);
-  }, [initialFilter, categories, vendors, appliedInitialFilter]);
+  }, [initialFilter, categories, vendors, metadataLoaded, appliedInitialFilter]);
 
   useEffect(() => {
     const params = new URLSearchParams();
@@ -427,7 +451,11 @@ export const CatalogView: React.FC<CatalogViewProps> = ({ initialFilter, onNavig
             value={searchFilter}
             onChange={(event) => {
               setSearchFilter(event.target.value);
-              trackEvent('search', { ai: aiSearchMode });
+              if (searchAnalyticsTimer.current) window.clearTimeout(searchAnalyticsTimer.current);
+              const query = event.target.value.trim();
+              searchAnalyticsTimer.current = window.setTimeout(() => {
+                if (query) trackEvent('search', { ai: aiSearchMode });
+              }, 500);
             }}
             placeholder={aiSearchMode ? 'Describe what you need...' : 'Search specs, model...'}
             className="w-full bg-slate-50 text-slate-800 pl-8 pr-3 py-1.5 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-indigo-500 outline-none"
@@ -458,9 +486,9 @@ export const CatalogView: React.FC<CatalogViewProps> = ({ initialFilter, onNavig
       </div>
 
       <div className="space-y-2 pt-3 border-t border-slate-100">
-        <div className="flex items-center justify-between text-xs font-bold text-slate-700"><span>Price Range</span><span className="text-indigo-600 font-extrabold">Up to ₹{priceRange.toLocaleString('en-IN')}</span></div>
-        <input type="range" min="5000" max={facets.priceRange.max || DEFAULT_MAX_PRICE} step="5000" value={Math.min(priceRange, facets.priceRange.max || DEFAULT_MAX_PRICE)} onChange={(event) => setPriceRange(Number(event.target.value))} className="w-full accent-indigo-600 cursor-pointer" />
-        <div className="flex justify-between text-[10px] text-slate-400"><span>₹5,000</span><span>₹{(facets.priceRange.max || DEFAULT_MAX_PRICE).toLocaleString('en-IN')}</span></div>
+        <div className="flex items-center justify-between text-xs font-bold text-slate-700"><span>Maximum price</span><span className="text-indigo-600 font-extrabold">Up to ₹{priceRange.toLocaleString('en-IN')}</span></div>
+        <input type="range" min="0" max={facets.priceRange.max || DEFAULT_MAX_PRICE} step="5000" value={Math.min(priceRange, facets.priceRange.max || DEFAULT_MAX_PRICE)} onChange={(event) => setPriceRange(Math.max(minPrice, Number(event.target.value)))} className="w-full accent-indigo-600 cursor-pointer" />
+        <div className="flex justify-between text-[10px] text-slate-400"><span>₹0</span><span>₹{(facets.priceRange.max || DEFAULT_MAX_PRICE).toLocaleString('en-IN')}</span></div>
         <input type="number" min="0" value={minPrice} onChange={(event) => setMinPrice(Math.max(0, Number(event.target.value)))} placeholder="Minimum price" className="w-full bg-slate-50 px-2 py-1.5 rounded-lg border border-slate-200 text-xs" />
       </div>
 
@@ -535,7 +563,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({ initialFilter, onNavig
 
       {visualFile && (
         <div className="bg-white rounded-3xl border border-indigo-100 p-4 flex flex-col sm:flex-row items-start sm:items-center gap-4">
-          <div className="w-16 h-16 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-center shrink-0"><img src={URL.createObjectURL(visualFile)} alt="Visual search query" className="w-full h-full object-cover rounded-xl" /></div>
+          <div className="w-16 h-16 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-center shrink-0"><img src={visualPreviewUrl || ''} alt="Visual search query" className="w-full h-full object-cover rounded-xl" /></div>
           <div className="flex-1 min-w-0"><h3 className="text-sm font-extrabold text-slate-900">Finding visually similar products</h3><p className="text-xs text-slate-500 mt-0.5">Your image is uploaded through the configured media signature flow and searched against catalog media.</p></div>
           {visualLoading ? <LoaderCircle className="w-5 h-5 text-indigo-600 animate-spin" /> : visualResults.length > 0 ? <span className="text-xs font-bold text-emerald-700 flex items-center gap-1"><CheckCircle2 className="w-4 h-4" />{visualResults.length} matches</span> : <span className="text-xs font-bold text-slate-500">Ready</span>}
           {visualError && <p className="text-[11px] text-rose-600 w-full">{visualError}</p>}

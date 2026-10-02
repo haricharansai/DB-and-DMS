@@ -26,6 +26,7 @@ export class MongoDatabase {
   private isInitialized = false;
   private client: MongoClient | null = null;
   private mongoDb: Db | null = null;
+  private diskSaveTimer: ReturnType<typeof setTimeout> | null = null;
   private initialization: Promise<void>;
   private mongoUrl = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/marketnexus';
 
@@ -124,7 +125,9 @@ export class MongoDatabase {
       this.insertOne('products', { ...prod, _id: this.generateObjectId() });
     }
 
-    const defaultHashedPassword = await bcrypt.hash('password123', 10);
+    const seedPassword = process.env.DEMO_SEED_PASSWORD || crypto.randomBytes(32).toString('hex');
+    if (!process.env.DEMO_SEED_PASSWORD) console.warn('DEMO_SEED_PASSWORD is not configured; seeded accounts received random passwords.');
+    const defaultHashedPassword = await bcrypt.hash(seedPassword, 12);
 
     for (const user of SEED_USERS) {
       this.insertOne('users', {
@@ -253,7 +256,7 @@ export class MongoDatabase {
         collection.find(filter).sort(sort).skip((page - 1) * limit).limit(limit).toArray(),
         collection.countDocuments(filter),
       ]);
-      return { products: products as MongoDocument[], total, source: 'mongodb' as const };
+      return { products: products.map((product: any) => ({ ...product, id: product.id || String(product._id) })) as MongoDocument[], total, source: 'mongodb' as const };
     }
     if (process.env.NODE_ENV === 'production') throw new Error('MongoDB is unavailable; JSON fallback is disabled in production.');
     const all = this.find('products', filter, { sort });
@@ -276,14 +279,20 @@ export class MongoDatabase {
 
   public async findCatalogProduct(id: string): Promise<MongoDocument | null> {
     await this.ready();
-    if (this.mongoDb) return await this.mongoDb.collection<any>('products').findOne({ $or: [{ id }, { _id: id }] }) as MongoDocument | null;
+    if (this.mongoDb) {
+      const doc = await this.mongoDb.collection<any>('products').findOne({ $or: [{ id }, { _id: id }] }) as MongoDocument | null;
+      return doc ? { ...doc, id: doc.id || String(doc._id) } : null;
+    }
     if (process.env.NODE_ENV === 'production') throw new Error('MongoDB is unavailable; JSON fallback is disabled in production.');
     return this.findById('products', id);
   }
 
   public async findVendor(id: string): Promise<MongoDocument | null> {
     await this.ready();
-    if (this.mongoDb) return await this.mongoDb.collection<any>('vendors').findOne({ $or: [{ id }, { _id: id }] }) as MongoDocument | null;
+    if (this.mongoDb) {
+      const doc = await this.mongoDb.collection<any>('vendors').findOne({ $or: [{ id }, { _id: id }] }) as MongoDocument | null;
+      return doc ? { ...doc, id: doc.id || String(doc._id) } : null;
+    }
     if (process.env.NODE_ENV === 'production') throw new Error('MongoDB is unavailable; JSON fallback is disabled in production.');
     return this.findById('vendors', id);
   }
@@ -327,12 +336,18 @@ export class MongoDatabase {
   }
 
   private saveToDisk() {
+    if (this.diskSaveTimer) clearTimeout(this.diskSaveTimer);
+    this.diskSaveTimer = setTimeout(() => this.flushToDisk(), 100);
+  }
+
+  private flushToDisk() {
     try {
       const obj: Record<string, MongoDocument[]> = {};
       for (const [key, val] of this.collections.entries()) {
         obj[key] = val;
       }
       fs.writeFileSync(DB_FILE_PATH, JSON.stringify(obj, null, 2), 'utf-8');
+      this.diskSaveTimer = null;
     } catch (err) {
       console.error('Failed to persist database to disk:', err);
     }
@@ -384,7 +399,9 @@ export class MongoDatabase {
 
   public findById(collectionName: string, id: string): MongoDocument | null {
     const coll = this.collections.get(collectionName) || [];
-    return coll.find(doc => doc._id === id || doc.id === id) || null;
+    const found = coll.find(doc => String(doc._id) === String(id) || String(doc.id) === String(id)) || null;
+    if (found && !found.id && found._id) found.id = String(found._id);
+    return found;
   }
 
   public insertOne(collectionName: string, doc: Record<string, any>): MongoDocument {

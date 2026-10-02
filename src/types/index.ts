@@ -485,11 +485,15 @@ export interface Category {
 }
 
 export interface AdminMetrics {
-  totalRevenue: number;
-  platformCommission: number;
+  totalGMV: number;
+  platformRevenue: number;
   totalOrders: number;
   totalVendors: number;
   totalProducts: number;
+  totalBuyers?: number;
+  pendingApprovals?: number;
+  conversionRate?: number;
+  activeDisputes?: number;
 }
 
 export interface MongoCollectionDoc {

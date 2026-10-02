@@ -908,6 +908,37 @@
       "rating": 5,
       "reviewsCount": 0,
       "status": "approved"
+    },
+    {
+      "_id": "6abf89ef0b10c6f39f07d3d4",
+      "id": "6abf89ef0c3d0fb235b86379",
+      "businessName": "Dayal Traders ",
+      "ownerName": "Hari",
+      "email": "dayal@gmail.com",
+      "phone": "+91 98000 00000",
+      "rating": 5,
+      "reviewsCount": 0,
+      "isVerified": false,
+      "status": "pending",
+      "badge": "New Seller",
+      "logo": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80",
+      "joinedDate": "2026-10-02",
+      "dispatchTime": "1-2 Business Days",
+      "city": "Mumbai, MH",
+      "kycDetails": {
+        "gstNumber": "24AG5765567686753",
+        "panNumber": "",
+        "businessLicense": "",
+        "documentUrl": "",
+        "submittedAt": "2026-10-02T10:39:43.252Z"
+      },
+      "metrics": {
+        "totalRevenue": 0,
+        "totalOrders": 0,
+        "fulfillmentRate": 100
+      },
+      "createdAt": "2026-10-02T10:39:43.254Z",
+      "updatedAt": "2026-10-02T10:39:43.254Z"
     }
   ],
   "products": [
@@ -1583,7 +1614,7 @@
       "vendorName": "SoundCrafters Pro",
       "rating": 4.9,
       "reviewsCount": 184,
-      "stock": 23,
+      "stock": 22,
       "thumbnail": "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&auto=format&fit=crop&q=80",
       "images": [
         "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&auto=format&fit=crop&q=80",
@@ -1617,7 +1648,7 @@
         "sony"
       ],
       "createdAt": "2024-01-10T12:00:00Z",
-      "updatedAt": "2026-09-24T05:13:41.157Z",
+      "updatedAt": "2026-09-16T03:24:31.115Z",
       "ai": {
         "moderationStatus": "not_run"
       },
@@ -97570,7 +97601,7 @@
       "status": "published",
       "rating": 0,
       "reviewsCount": 0,
-      "stock": 10,
+      "stock": 9,
       "images": [
         "https://images-na.ssl-images-amazon.com/images/I/319s5uqY7QL.jpg"
       ],
@@ -97770,6 +97801,65 @@
       },
       "createdAt": "2026-09-16T04:44:10.077Z",
       "updatedAt": "2026-09-16T04:44:40.767Z"
+    },
+    {
+      "_id": "6abf8c32ad9029e4153511b5",
+      "title": "fogg majestic Black",
+      "description": "Smell majestic ",
+      "price": 285,
+      "originalPrice": 300,
+      "discountPercentage": 5,
+      "category": "electronics",
+      "brand": "Fogg",
+      "vendorId": "6abf89ef0c3d0fb235b86379",
+      "vendorName": "Dayal Traders ",
+      "rating": 5,
+      "reviewsCount": 0,
+      "stock": 38,
+      "images": [
+        "https://encrypted-tbn2.gstatic.com/shopping?q=tbn:ANd9GcTS-j4iNih4-FHYcC_URcsf88XM9UhPOFCROu0r_6xI8veLNOdUSNqzHv9TWi92lx_-rqzK5ey5zwBzDsZVQ4t5RCntKxwKRItlVA29km4TTCkms26nqDJorBzc"
+      ],
+      "thumbnail": "https://encrypted-tbn2.gstatic.com/shopping?q=tbn:ANd9GcTS-j4iNih4-FHYcC_URcsf88XM9UhPOFCROu0r_6xI8veLNOdUSNqzHv9TWi92lx_-rqzK5ey5zwBzDsZVQ4t5RCntKxwKRItlVA29km4TTCkms26nqDJorBzc",
+      "colors": [
+        "Default"
+      ],
+      "specs": {
+        "warranty": "1 Year Manufacturer",
+        "origin": "Made in India",
+        "dispatch": "Same-day"
+      },
+      "tags": [
+        "new",
+        "marketplace",
+        "electronics"
+      ],
+      "isFeatured": false,
+      "isTrending": true,
+      "id": "prod_11252973eeaf",
+      "slug": "fogg-majestic-black",
+      "status": "published",
+      "media": [
+        {
+          "id": "media_prod_11252973eeaf_1",
+          "publicId": "",
+          "url": "https://encrypted-tbn2.gstatic.com/shopping?q=tbn:ANd9GcTS-j4iNih4-FHYcC_URcsf88XM9UhPOFCROu0r_6xI8veLNOdUSNqzHv9TWi92lx_-rqzK5ey5zwBzDsZVQ4t5RCntKxwKRItlVA29km4TTCkms26nqDJorBzc",
+          "secureUrl": "https://encrypted-tbn2.gstatic.com/shopping?q=tbn:ANd9GcTS-j4iNih4-FHYcC_URcsf88XM9UhPOFCROu0r_6xI8veLNOdUSNqzHv9TWi92lx_-rqzK5ey5zwBzDsZVQ4t5RCntKxwKRItlVA29km4TTCkms26nqDJorBzc",
+          "format": "webp",
+          "width": 0,
+          "height": 0,
+          "bytes": 0,
+          "version": 1,
+          "role": "primary",
+          "altText": "fogg majestic Black",
+          "position": 0
+        }
+      ],
+      "attributes": {},
+      "ai": {
+        "moderationStatus": "not_run"
+      },
+      "createdAt": "2026-10-02T10:49:22.282Z",
+      "updatedAt": "2026-10-02T11:09:48.455Z"
     }
   ],
   "users": [
@@ -97929,6 +98019,81 @@
       ],
       "createdAt": "2026-09-24T04:54:06.906Z",
       "updatedAt": "2026-09-24T04:54:06.906Z"
+    },
+    {
+      "_id": "6aba23969ab617ce371bb236",
+      "id": "6aba2396964136d29800cab2",
+      "name": "Rahul",
+      "email": "rahul@gmail.com",
+      "passwordHash": "$2b$10$2b1m1kNcZcjehwBken3LsOJPqq5M.prhWIVcykiSCb3XYuBi7oM9y",
+      "role": "buyer",
+      "phone": "",
+      "vendorId": null,
+      "avatar": "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80",
+      "savedAddresses": [
+        {
+          "id": "addr_1790583702785",
+          "fullName": "Rahul",
+          "phone": "+91 98765 43210",
+          "street": "123 Tech Residency, MG Road",
+          "city": "Bengaluru",
+          "state": "Karnataka",
+          "zipCode": "560001",
+          "isDefault": true
+        }
+      ],
+      "createdAt": "2026-09-28T08:21:42.786Z",
+      "updatedAt": "2026-09-28T08:21:42.789Z"
+    },
+    {
+      "_id": "6abf89eff93fef41f2f4ecf6",
+      "id": "6abf89efe833a857ed4693a4",
+      "name": "Hari",
+      "email": "dayal@gmail.com",
+      "passwordHash": "$2b$10$OKx3xE58.Q6j8Z1O3HLmeuu5SRN3BDjl6THBbjTsKSrvO0Rpl.U.y",
+      "role": "vendor",
+      "phone": "",
+      "vendorId": "6abf89ef0c3d0fb235b86379",
+      "avatar": "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80",
+      "savedAddresses": [
+        {
+          "id": "addr_1790937583255",
+          "fullName": "Hari",
+          "phone": "+91 98765 43210",
+          "street": "123 Tech Residency, MG Road",
+          "city": "Bengaluru",
+          "state": "Karnataka",
+          "zipCode": "560001",
+          "isDefault": true
+        }
+      ],
+      "createdAt": "2026-10-02T10:39:43.255Z",
+      "updatedAt": "2026-10-02T10:39:43.255Z"
+    },
+    {
+      "_id": "6abf8d2193a0eb7b10373c83",
+      "id": "6abf8d21caec4e6e3e0f1f66",
+      "name": "Vamsi",
+      "email": "vamsi@gmail.com",
+      "passwordHash": "$2b$10$G4mKXNnI.xi.VWFaC7WR6.198U1Wt7PPg39i.jfHSXXMdbq84dOB6",
+      "role": "buyer",
+      "phone": "",
+      "vendorId": null,
+      "avatar": "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80",
+      "savedAddresses": [
+        {
+          "id": "addr_1790938401338",
+          "fullName": "Vamsi",
+          "phone": "+91 98765 43210",
+          "street": "123 Tech Residency, MG Road",
+          "city": "Bengaluru",
+          "state": "Karnataka",
+          "zipCode": "560001",
+          "isDefault": true
+        }
+      ],
+      "createdAt": "2026-10-02T10:53:21.338Z",
+      "updatedAt": "2026-10-02T10:53:21.338Z"
     }
   ],
   "reviews": [
@@ -97965,70 +98130,67 @@
   ],
   "orders": [
     {
-      "_id": "6ab4b185d73d67ef761392c1",
-      "id": "ord_9315917",
-      "userId": "6ab4acee97070f1261240b18",
-      "customerName": "Hasith",
-      "customerEmail": "yesno@gmail.com",
+      "_id": "6abf90fc9c7c8c1d09046d52",
+      "id": "ord_27870f2a-e72f-417b-ba75-2d1a88b7bfc5",
+      "userId": "u_buyer_demo",
+      "customerName": "Aarav Patel",
+      "customerEmail": "buyer@marketnexus.io",
       "customerPhone": "+91 98765 43210",
       "shippingAddress": {
-        "id": "addr_1790225646906",
-        "fullName": "Hasith",
+        "id": "addr_1",
+        "fullName": "Vamsi",
         "phone": "+91 98765 43210",
         "street": "123 Tech Residency, MG Road",
         "city": "Bengaluru",
         "state": "Karnataka",
-        "zipCode": "560001",
-        "isDefault": true
+        "zipCode": "560001"
       },
       "items": [
         {
-          "productId": "prod_wh1000xm5",
-          "title": "Sony WH-1000XM5 Wireless Noise-Canceling Headphones",
-          "price": 29990,
+          "vendorId": "6abf89ef0c3d0fb235b86379",
+          "productId": "prod_11252973eeaf",
           "quantity": 1,
-          "selectedColor": "Midnight Black",
-          "thumbnail": "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&auto=format&fit=crop&q=80",
-          "vendorId": "v_soundcrafters",
-          "vendorName": "SoundCrafters Pro"
+          "price": 285,
+          "thumbnail": "https://encrypted-tbn2.gstatic.com/shopping?q=tbn:ANd9GcTS-j4iNih4-FHYcC_URcsf88XM9UhPOFCROu0r_6xI8veLNOdUSNqzHv9TWi92lx_-rqzK5ey5zwBzDsZVQ4t5RCntKxwKRItlVA29km4TTCkms26nqDJorBzc",
+          "title": "fogg majestic Black",
+          "vendorName": "Dayal Traders "
         }
       ],
       "subOrders": [
         {
-          "vendorId": "v_soundcrafters",
-          "vendorName": "SoundCrafters Pro",
+          "vendorId": "6abf89ef0c3d0fb235b86379",
+          "vendorName": "Dayal Traders ",
           "items": [
             {
-              "productId": "prod_wh1000xm5",
-              "title": "Sony WH-1000XM5 Wireless Noise-Canceling Headphones",
-              "price": 29990,
+              "vendorId": "6abf89ef0c3d0fb235b86379",
+              "productId": "prod_11252973eeaf",
               "quantity": 1,
-              "selectedColor": "Midnight Black",
-              "thumbnail": "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&auto=format&fit=crop&q=80",
-              "vendorId": "v_soundcrafters",
-              "vendorName": "SoundCrafters Pro"
+              "price": 285,
+              "thumbnail": "https://encrypted-tbn2.gstatic.com/shopping?q=tbn:ANd9GcTS-j4iNih4-FHYcC_URcsf88XM9UhPOFCROu0r_6xI8veLNOdUSNqzHv9TWi92lx_-rqzK5ey5zwBzDsZVQ4t5RCntKxwKRItlVA29km4TTCkms26nqDJorBzc",
+              "title": "fogg majestic Black",
+              "vendorName": "Dayal Traders "
             }
           ],
-          "subtotal": 29990,
-          "shippingFee": 0,
+          "subtotal": 285,
+          "shippingFee": 99,
           "status": "confirmed",
-          "trackingNumber": "FDX-126572244",
+          "trackingNumber": "FDX-AA4D3FCA300C",
           "courier": "FedEx Express Courier",
-          "estimatedDelivery": "2026-09-26T05:13:41.129Z",
+          "estimatedDelivery": "2026-10-04T11:09:48.451Z",
           "milestones": [
             {
               "status": "placed",
               "label": "Order Placed",
-              "description": "Order ord_9315917 confirmed with online payment.",
-              "timestamp": "2026-09-24T05:13:41.128Z",
+              "description": "Order ord_27870f2a-e72f-417b-ba75-2d1a88b7bfc5 confirmed with online payment.",
+              "timestamp": "2026-10-02T11:09:48.451Z",
               "completed": true,
               "current": false
             },
             {
               "status": "confirmed",
               "label": "Confirmed by Seller",
-              "description": "SoundCrafters Pro acknowledged the order.",
-              "timestamp": "2026-09-24T05:13:41.129Z",
+              "description": "Dayal Traders  acknowledged the order.",
+              "timestamp": "2026-10-02T11:09:48.451Z",
               "completed": true,
               "current": true
             },
@@ -98067,17 +98229,17 @@
           ]
         }
       ],
-      "subtotal": 29990,
-      "tax": 5398.2,
-      "shippingTotal": 0,
+      "subtotal": 285,
+      "tax": 51.3,
+      "shippingTotal": 99,
       "discount": 0,
-      "totalAmount": 35388.2,
-      "paymentMethod": "upi",
-      "paymentStatus": "paid",
+      "totalAmount": 435.3,
+      "paymentMethod": "card",
+      "paymentStatus": "pending",
       "status": "confirmed",
-      "overallTrackingNumber": "FDX-713473059",
-      "createdAt": "2026-09-24T05:13:41.129Z",
-      "updatedAt": "2026-09-24T05:13:41.129Z"
+      "overallTrackingNumber": "FDX-C2553DFF9A36",
+      "createdAt": "2026-10-02T11:09:48.452Z",
+      "updatedAt": "2026-10-02T11:09:48.452Z"
     },
     {
       "_id": "6a9919398b025456a9190644",
@@ -98556,17 +98718,477 @@
       "overallTrackingNumber": "FDX-410284521",
       "createdAt": "2026-09-24T04:58:59.294Z",
       "updatedAt": "2026-09-24T04:58:59.294Z"
+    },
+    {
+      "_id": "6ab4b185d73d67ef761392c1",
+      "id": "ord_9315917",
+      "userId": "6ab4acee97070f1261240b18",
+      "customerName": "Hasith",
+      "customerEmail": "yesno@gmail.com",
+      "customerPhone": "+91 98765 43210",
+      "shippingAddress": {
+        "id": "addr_1790225646906",
+        "fullName": "Hasith",
+        "phone": "+91 98765 43210",
+        "street": "123 Tech Residency, MG Road",
+        "city": "Bengaluru",
+        "state": "Karnataka",
+        "zipCode": "560001",
+        "isDefault": true
+      },
+      "items": [
+        {
+          "productId": "prod_wh1000xm5",
+          "title": "Sony WH-1000XM5 Wireless Noise-Canceling Headphones",
+          "price": 29990,
+          "quantity": 1,
+          "selectedColor": "Midnight Black",
+          "thumbnail": "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&auto=format&fit=crop&q=80",
+          "vendorId": "v_soundcrafters",
+          "vendorName": "SoundCrafters Pro"
+        }
+      ],
+      "subOrders": [
+        {
+          "vendorId": "v_soundcrafters",
+          "vendorName": "SoundCrafters Pro",
+          "items": [
+            {
+              "productId": "prod_wh1000xm5",
+              "title": "Sony WH-1000XM5 Wireless Noise-Canceling Headphones",
+              "price": 29990,
+              "quantity": 1,
+              "selectedColor": "Midnight Black",
+              "thumbnail": "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&auto=format&fit=crop&q=80",
+              "vendorId": "v_soundcrafters",
+              "vendorName": "SoundCrafters Pro"
+            }
+          ],
+          "subtotal": 29990,
+          "shippingFee": 0,
+          "status": "confirmed",
+          "trackingNumber": "FDX-126572244",
+          "courier": "FedEx Express Courier",
+          "estimatedDelivery": "2026-09-26T05:13:41.129Z",
+          "milestones": [
+            {
+              "status": "placed",
+              "label": "Order Placed",
+              "description": "Order ord_9315917 confirmed with online payment.",
+              "timestamp": "2026-09-24T05:13:41.128Z",
+              "completed": true,
+              "current": false
+            },
+            {
+              "status": "confirmed",
+              "label": "Confirmed by Seller",
+              "description": "SoundCrafters Pro acknowledged the order.",
+              "timestamp": "2026-09-24T05:13:41.129Z",
+              "completed": true,
+              "current": true
+            },
+            {
+              "status": "processing",
+              "label": "Packing at Warehouse",
+              "description": "Item being safely packaged.",
+              "timestamp": "",
+              "completed": false,
+              "current": false
+            },
+            {
+              "status": "shipped",
+              "label": "Dispatched via Courier",
+              "description": "Handed over to carrier partner.",
+              "timestamp": "",
+              "completed": false,
+              "current": false
+            },
+            {
+              "status": "out_for_delivery",
+              "label": "Out for Delivery",
+              "description": "Courier out for final mile delivery.",
+              "timestamp": "",
+              "completed": false,
+              "current": false
+            },
+            {
+              "status": "delivered",
+              "label": "Delivered",
+              "description": "Delivered to customer doorstep.",
+              "timestamp": "",
+              "completed": false,
+              "current": false
+            }
+          ]
+        }
+      ],
+      "subtotal": 29990,
+      "tax": 5398.2,
+      "shippingTotal": 0,
+      "discount": 0,
+      "totalAmount": 35388.2,
+      "paymentMethod": "upi",
+      "paymentStatus": "paid",
+      "status": "confirmed",
+      "overallTrackingNumber": "FDX-713473059",
+      "createdAt": "2026-09-24T05:13:41.129Z",
+      "updatedAt": "2026-09-24T05:13:41.129Z"
+    },
+    {
+      "_id": "6aba240bf78ebe35890e3aa2",
+      "id": "ord_6731835",
+      "userId": "6aba2396964136d29800cab2",
+      "customerName": "Rahul",
+      "customerEmail": "rahul@gmail.com",
+      "customerPhone": "+91 98765 43210",
+      "shippingAddress": {
+        "id": "addr_1790583702785",
+        "fullName": "Rahul",
+        "phone": "+91 98765 43210",
+        "street": "123 Tech Residency, MG Road",
+        "city": "Bengaluru",
+        "state": "Karnataka",
+        "zipCode": "560001",
+        "isDefault": true
+      },
+      "items": [
+        {
+          "productId": "csv_1b26879171e821d8092aed67d50182f4",
+          "title": "Team Associated 1658 Factory Team Hex Driver Bit, 1/16\"",
+          "price": 937,
+          "quantity": 1,
+          "selectedColor": "Default",
+          "thumbnail": "https://images-na.ssl-images-amazon.com/images/I/319s5uqY7QL.jpg",
+          "vendorId": "v_dbms_bulk_04",
+          "vendorName": "Cedar Market"
+        }
+      ],
+      "subOrders": [
+        {
+          "vendorId": "v_dbms_bulk_04",
+          "vendorName": "Cedar Market",
+          "items": [
+            {
+              "productId": "csv_1b26879171e821d8092aed67d50182f4",
+              "title": "Team Associated 1658 Factory Team Hex Driver Bit, 1/16\"",
+              "price": 937,
+              "quantity": 1,
+              "selectedColor": "Default",
+              "thumbnail": "https://images-na.ssl-images-amazon.com/images/I/319s5uqY7QL.jpg",
+              "vendorId": "v_dbms_bulk_04",
+              "vendorName": "Cedar Market"
+            }
+          ],
+          "subtotal": 937,
+          "shippingFee": 99,
+          "status": "confirmed",
+          "trackingNumber": "FDX-869844736",
+          "courier": "FedEx Express Courier",
+          "estimatedDelivery": "2026-09-30T08:23:39.943Z",
+          "milestones": [
+            {
+              "status": "placed",
+              "label": "Order Placed",
+              "description": "Order ord_6731835 confirmed with online payment.",
+              "timestamp": "2026-09-28T08:23:39.943Z",
+              "completed": true,
+              "current": false
+            },
+            {
+              "status": "confirmed",
+              "label": "Confirmed by Seller",
+              "description": "Cedar Market acknowledged the order.",
+              "timestamp": "2026-09-28T08:23:39.943Z",
+              "completed": true,
+              "current": true
+            },
+            {
+              "status": "processing",
+              "label": "Packing at Warehouse",
+              "description": "Item being safely packaged.",
+              "timestamp": "",
+              "completed": false,
+              "current": false
+            },
+            {
+              "status": "shipped",
+              "label": "Dispatched via Courier",
+              "description": "Handed over to carrier partner.",
+              "timestamp": "",
+              "completed": false,
+              "current": false
+            },
+            {
+              "status": "out_for_delivery",
+              "label": "Out for Delivery",
+              "description": "Courier out for final mile delivery.",
+              "timestamp": "",
+              "completed": false,
+              "current": false
+            },
+            {
+              "status": "delivered",
+              "label": "Delivered",
+              "description": "Delivered to customer doorstep.",
+              "timestamp": "",
+              "completed": false,
+              "current": false
+            }
+          ]
+        }
+      ],
+      "subtotal": 937,
+      "tax": 168.66,
+      "shippingTotal": 99,
+      "discount": 0,
+      "totalAmount": 1204.66,
+      "paymentMethod": "card",
+      "paymentStatus": "paid",
+      "status": "confirmed",
+      "overallTrackingNumber": "FDX-529955409",
+      "createdAt": "2026-09-28T08:23:39.944Z",
+      "updatedAt": "2026-09-28T08:23:39.944Z"
+    },
+    {
+      "_id": "6aba24733ff402118da613a9",
+      "id": "ord_2752431",
+      "userId": "6aba2396964136d29800cab2",
+      "customerName": "Rahul",
+      "customerEmail": "rahul@gmail.com",
+      "customerPhone": "+91 98765 43210",
+      "shippingAddress": {
+        "id": "addr_1790583702785",
+        "fullName": "Rahul",
+        "phone": "+91 98765 43210",
+        "street": "123 Tech Residency, MG Road",
+        "city": "Bengaluru",
+        "state": "Karnataka",
+        "zipCode": "560001",
+        "isDefault": true
+      },
+      "items": [
+        {
+          "productId": "prod_wh1000xm5",
+          "title": "Sony WH-1000XM5 Wireless Noise-Canceling Headphones",
+          "price": 29990,
+          "quantity": 1,
+          "selectedColor": "Midnight Black",
+          "thumbnail": "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&auto=format&fit=crop&q=80",
+          "vendorId": "v_soundcrafters",
+          "vendorName": "SoundCrafters Pro"
+        }
+      ],
+      "subOrders": [
+        {
+          "vendorId": "v_soundcrafters",
+          "vendorName": "SoundCrafters Pro",
+          "items": [
+            {
+              "productId": "prod_wh1000xm5",
+              "title": "Sony WH-1000XM5 Wireless Noise-Canceling Headphones",
+              "price": 29990,
+              "quantity": 1,
+              "selectedColor": "Midnight Black",
+              "thumbnail": "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&auto=format&fit=crop&q=80",
+              "vendorId": "v_soundcrafters",
+              "vendorName": "SoundCrafters Pro"
+            }
+          ],
+          "subtotal": 29990,
+          "shippingFee": 0,
+          "status": "confirmed",
+          "trackingNumber": "FDX-559646044",
+          "courier": "FedEx Express Courier",
+          "estimatedDelivery": "2026-09-30T08:25:23.356Z",
+          "milestones": [
+            {
+              "status": "placed",
+              "label": "Order Placed",
+              "description": "Order ord_2752431 confirmed with online payment.",
+              "timestamp": "2026-09-28T08:25:23.356Z",
+              "completed": true,
+              "current": false
+            },
+            {
+              "status": "confirmed",
+              "label": "Confirmed by Seller",
+              "description": "SoundCrafters Pro acknowledged the order.",
+              "timestamp": "2026-09-28T08:25:23.356Z",
+              "completed": true,
+              "current": true
+            },
+            {
+              "status": "processing",
+              "label": "Packing at Warehouse",
+              "description": "Item being safely packaged.",
+              "timestamp": "",
+              "completed": false,
+              "current": false
+            },
+            {
+              "status": "shipped",
+              "label": "Dispatched via Courier",
+              "description": "Handed over to carrier partner.",
+              "timestamp": "",
+              "completed": false,
+              "current": false
+            },
+            {
+              "status": "out_for_delivery",
+              "label": "Out for Delivery",
+              "description": "Courier out for final mile delivery.",
+              "timestamp": "",
+              "completed": false,
+              "current": false
+            },
+            {
+              "status": "delivered",
+              "label": "Delivered",
+              "description": "Delivered to customer doorstep.",
+              "timestamp": "",
+              "completed": false,
+              "current": false
+            }
+          ]
+        }
+      ],
+      "subtotal": 29990,
+      "tax": 5398.2,
+      "shippingTotal": 0,
+      "discount": 0,
+      "totalAmount": 35388.2,
+      "paymentMethod": "card",
+      "paymentStatus": "paid",
+      "status": "confirmed",
+      "overallTrackingNumber": "FDX-172591090",
+      "createdAt": "2026-09-28T08:25:23.357Z",
+      "updatedAt": "2026-09-28T08:25:23.357Z"
+    },
+    {
+      "_id": "6abf8f8cccb627fb0f393e25",
+      "id": "ord_47a483fe-d300-46cc-ad1f-3409165737f9",
+      "userId": "6abf8d21caec4e6e3e0f1f66",
+      "customerName": "Vamsi",
+      "customerEmail": "vamsi@gmail.com",
+      "customerPhone": "+91 98765 43210",
+      "shippingAddress": {
+        "id": "addr_1790938401338",
+        "fullName": "Vamsi",
+        "phone": "+91 98765 43210",
+        "street": "123 Tech Residency, MG Road",
+        "city": "Bengaluru",
+        "state": "Karnataka",
+        "zipCode": "560001",
+        "isDefault": true
+      },
+      "items": [
+        {
+          "productId": "prod_11252973eeaf",
+          "title": "fogg majestic Black",
+          "price": 285,
+          "quantity": 1,
+          "selectedColor": "Default",
+          "thumbnail": "https://encrypted-tbn2.gstatic.com/shopping?q=tbn:ANd9GcTS-j4iNih4-FHYcC_URcsf88XM9UhPOFCROu0r_6xI8veLNOdUSNqzHv9TWi92lx_-rqzK5ey5zwBzDsZVQ4t5RCntKxwKRItlVA29km4TTCkms26nqDJorBzc",
+          "vendorId": "6abf89ef0c3d0fb235b86379",
+          "vendorName": "Dayal Traders "
+        }
+      ],
+      "subOrders": [
+        {
+          "vendorId": "6abf89ef0c3d0fb235b86379",
+          "vendorName": "Dayal Traders ",
+          "items": [
+            {
+              "productId": "prod_11252973eeaf",
+              "title": "fogg majestic Black",
+              "price": 285,
+              "quantity": 1,
+              "selectedColor": "Default",
+              "thumbnail": "https://encrypted-tbn2.gstatic.com/shopping?q=tbn:ANd9GcTS-j4iNih4-FHYcC_URcsf88XM9UhPOFCROu0r_6xI8veLNOdUSNqzHv9TWi92lx_-rqzK5ey5zwBzDsZVQ4t5RCntKxwKRItlVA29km4TTCkms26nqDJorBzc",
+              "vendorId": "6abf89ef0c3d0fb235b86379",
+              "vendorName": "Dayal Traders "
+            }
+          ],
+          "subtotal": 285,
+          "shippingFee": 99,
+          "status": "confirmed",
+          "trackingNumber": "FDX-9D6365C7A75D",
+          "courier": "FedEx Express Courier",
+          "estimatedDelivery": "2026-10-04T11:03:40.448Z",
+          "milestones": [
+            {
+              "status": "placed",
+              "label": "Order Placed",
+              "description": "Order ord_47a483fe-d300-46cc-ad1f-3409165737f9 confirmed with online payment.",
+              "timestamp": "2026-10-02T11:03:40.447Z",
+              "completed": true,
+              "current": false
+            },
+            {
+              "status": "confirmed",
+              "label": "Confirmed by Seller",
+              "description": "Dayal Traders  acknowledged the order.",
+              "timestamp": "2026-10-02T11:03:40.448Z",
+              "completed": true,
+              "current": true
+            },
+            {
+              "status": "processing",
+              "label": "Packing at Warehouse",
+              "description": "Item being safely packaged.",
+              "timestamp": "",
+              "completed": false,
+              "current": false
+            },
+            {
+              "status": "shipped",
+              "label": "Dispatched via Courier",
+              "description": "Handed over to carrier partner.",
+              "timestamp": "",
+              "completed": false,
+              "current": false
+            },
+            {
+              "status": "out_for_delivery",
+              "label": "Out for Delivery",
+              "description": "Courier out for final mile delivery.",
+              "timestamp": "",
+              "completed": false,
+              "current": false
+            },
+            {
+              "status": "delivered",
+              "label": "Delivered",
+              "description": "Delivered to customer doorstep.",
+              "timestamp": "",
+              "completed": false,
+              "current": false
+            }
+          ]
+        }
+      ],
+      "subtotal": 285,
+      "tax": 51.3,
+      "shippingTotal": 99,
+      "discount": 0,
+      "totalAmount": 435.3,
+      "paymentMethod": "card",
+      "paymentStatus": "pending",
+      "status": "confirmed",
+      "overallTrackingNumber": "FDX-A34C9724C3ED",
+      "createdAt": "2026-10-02T11:03:40.448Z",
+      "updatedAt": "2026-10-02T11:03:40.448Z"
     }
   ],
   "audit_logs": [
     {
-      "_id": "6ab4b185464d66d1e7d1fa34",
-      "id": "6ab4b185a144f003beb00564",
+      "_id": "6abf90fc2440594d8d12dc15",
+      "id": "6abf90fc66db7a175bd7904b",
       "action": "ORDER_CREATE",
-      "details": "Order #ord_9315917 created for ₹35,388.2",
-      "performedBy": "6ab4acee97070f1261240b18",
-      "createdAt": "2026-09-24T05:13:41.220Z",
-      "updatedAt": "2026-09-24T05:13:41.220Z"
+      "details": "Order #ord_27870f2a-e72f-417b-ba75-2d1a88b7bfc5 created for ₹435.3",
+      "performedBy": "u_buyer_demo",
+      "createdAt": "2026-10-02T11:09:48.463Z",
+      "updatedAt": "2026-10-02T11:09:48.463Z"
     },
     {
       "_id": "6a991946bc851d072356a07e",
@@ -98640,6 +99262,78 @@
       "performedBy": "6ab4acee97070f1261240b18",
       "createdAt": "2026-09-24T04:58:59.371Z",
       "updatedAt": "2026-09-24T04:58:59.371Z"
+    },
+    {
+      "_id": "6ab4b185464d66d1e7d1fa34",
+      "id": "6ab4b185a144f003beb00564",
+      "action": "ORDER_CREATE",
+      "details": "Order #ord_9315917 created for ₹35,388.2",
+      "performedBy": "6ab4acee97070f1261240b18",
+      "createdAt": "2026-09-24T05:13:41.220Z",
+      "updatedAt": "2026-09-24T05:13:41.220Z"
+    },
+    {
+      "_id": "6aba23960f926ec396f6cab7",
+      "id": "6aba23963deeb12406a6e01b",
+      "action": "USER_REGISTER",
+      "details": "New user registered: rahul@gmail.com with role buyer",
+      "performedBy": "6aba2396964136d29800cab2",
+      "createdAt": "2026-09-28T08:21:42.865Z",
+      "updatedAt": "2026-09-28T08:21:42.865Z"
+    },
+    {
+      "_id": "6aba240c5aef5fd881c1f81a",
+      "id": "6aba240ca37b371621e8bc77",
+      "action": "ORDER_CREATE",
+      "details": "Order #ord_6731835 created for ₹1,204.66",
+      "performedBy": "6aba2396964136d29800cab2",
+      "createdAt": "2026-09-28T08:23:40.096Z",
+      "updatedAt": "2026-09-28T08:23:40.096Z"
+    },
+    {
+      "_id": "6aba2473e3384fa17a32ebfa",
+      "id": "6aba2473ccfcdf736752e4d5",
+      "action": "ORDER_CREATE",
+      "details": "Order #ord_2752431 created for ₹35,388.2",
+      "performedBy": "6aba2396964136d29800cab2",
+      "createdAt": "2026-09-28T08:25:23.493Z",
+      "updatedAt": "2026-09-28T08:25:23.493Z"
+    },
+    {
+      "_id": "6abf89efd06e050702ba4796",
+      "id": "6abf89ef5a453da625ff4ffe",
+      "action": "USER_REGISTER",
+      "details": "New user registered: dayal@gmail.com with role vendor",
+      "performedBy": "6abf89efe833a857ed4693a4",
+      "createdAt": "2026-10-02T10:39:43.280Z",
+      "updatedAt": "2026-10-02T10:39:43.280Z"
+    },
+    {
+      "_id": "6abf8c32b96546002505aef6",
+      "id": "6abf8c325cedd71d3954ee82",
+      "action": "PRODUCT_CREATE",
+      "details": "Vendor Dayal Traders  added product fogg majestic Black",
+      "performedBy": "6abf89efe833a857ed4693a4",
+      "createdAt": "2026-10-02T10:49:22.423Z",
+      "updatedAt": "2026-10-02T10:49:22.423Z"
+    },
+    {
+      "_id": "6abf8d2179d7952ddf918902",
+      "id": "6abf8d21c92475c0dbc65723",
+      "action": "USER_REGISTER",
+      "details": "New user registered: vamsi@gmail.com with role buyer",
+      "performedBy": "6abf8d21caec4e6e3e0f1f66",
+      "createdAt": "2026-10-02T10:53:21.342Z",
+      "updatedAt": "2026-10-02T10:53:21.342Z"
+    },
+    {
+      "_id": "6abf8f8c45f6a3a2d8497649",
+      "id": "6abf8f8c587652452219257a",
+      "action": "ORDER_CREATE",
+      "details": "Order #ord_47a483fe-d300-46cc-ad1f-3409165737f9 created for ₹435.3",
+      "performedBy": "6abf8d21caec4e6e3e0f1f66",
+      "createdAt": "2026-10-02T11:03:40.457Z",
+      "updatedAt": "2026-10-02T11:03:40.457Z"
     }
   ]
 }

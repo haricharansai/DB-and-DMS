@@ -11,6 +11,37 @@ async function startServer() {
   const PORT = Number(process.env.PORT || 3000);
   const HOST = process.env.HOST || '0.0.0.0';
 
+  // Baseline security headers. CSP and HSTS are enabled only in production so
+  // Vite's development websocket and hot-reload scripts continue to work.
+  app.use((req, res, next) => {
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.setHeader('X-Frame-Options', 'DENY');
+    res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+    res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+    if (process.env.NODE_ENV === 'production') {
+      res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+      res.setHeader('Content-Security-Policy', "default-src 'self'; img-src 'self' data: https:; style-src 'self' 'unsafe-inline'; connect-src 'self' https:; font-src 'self' data: https:; object-src 'none'; base-uri 'self'; frame-ancestors 'none'");
+    }
+    next();
+  });
+
+  const attempts = new Map<string, { count: number; resetAt: number }>();
+  const rateLimit = (limit: number, windowMs: number) => (req: express.Request, res: express.Response, next: express.NextFunction) => {
+    const key = `${req.ip}:${req.path}`;
+    const now = Date.now();
+    const current = attempts.get(key);
+    if (!current || current.resetAt <= now) {
+      attempts.set(key, { count: 1, resetAt: now + windowMs });
+      return next();
+    }
+    if (current.count >= limit) return res.status(429).json({ success: false, error: 'Too many attempts. Please try again later.' });
+    current.count += 1;
+    next();
+  };
+
+  app.use('/api/auth/login', rateLimit(10, 15 * 60 * 1000));
+  app.use('/api/auth/register', rateLimit(5, 60 * 60 * 1000));
+
   // Middleware for body parsing
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));

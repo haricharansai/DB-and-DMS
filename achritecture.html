@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MarketNexus Interactive Architecture Flowchart</title>
+
+<style>
+    * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+    }
+
+    body {
+        min-height: 100vh;
+        background:
+            radial-gradient(circle at 50% 0%, rgba(56,189,248,0.12), transparent 45%),
+            #07090e;
+        color: #f8fafc;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        padding: 30px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .container {
+        width: 1400px;
+        max-width: 100%;
+        margin: auto;
+    }
+
+    /* ================= HEADER & CONTROLS ================= */
+
+    .header {
+        text-align: center;
+        margin-bottom: 25px;
+    }
+
+    .header h1 {
+        font-size: 32px;
+        margin-bottom: 8px;
+        letter-spacing: 0.5px;
+        background: linear-gradient(90deg, #38bdf8, #a78bfa);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .header p {
+        color: #94a3b8;
+        font-size: 15px;
+    }
+
+    .controls {
+        display: flex;
+        justify-content: center;
+        gap: 15px;
+        margin-bottom: 30px;
+        flex-wrap: wrap;
+    }
+
+    .btn {
+        background: #0f172a;
+        color: #38bdf8;
+        border: 1px solid rgba(56,189,248,0.4);
+        padding: 10px 20px;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    }
+
+    .btn:hover {
+        background: #38bdf8;
+        color: #07090e;
+        box-shadow: 0 0 15px rgba(56,189,248,0.4);
+    }
+
+    .btn-secondary {
+        color: #fbbf24;
+        border-color: rgba(251,191,36,0.4);
+    }
+
+    .btn-secondary:hover {
+        background: #fbbf24;
+        color: #07090e;
+        box-shadow: 0 0 15px rgba(251,191,36,0.4);
+    }
+
+    /* ================= MAIN FLOW ================= */
+
+    .main-flow {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+    }
+
+    /* ================= NODES ================= */
+
+    .node {
+        width: 190px;
+        min-height: 135px;
+        padding: 18px 14px;
+        background: rgba(15, 23, 42, 0.85);
+        border: 1px solid rgba(255,255,255,0.12);
+        border-radius: 14px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        text-align: center;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+        cursor: pointer;
+        transition: all 0.3s ease;
+        position: relative;
+    }
+
+    .node:hover {
+        transform: translateY(-50px) scale(1.03);
+        border-color: rgba(255,255,255,0.4);
+    }
+
+    .node.active-step {
+        border-width: 2px;
+        transform: translateY(-6px);
+        box-shadow: 0 0 25px currentColor;
+    }
+
+    .node-number {
+        font-size: 11px;
+        color: #64748b;
+        margin-bottom: 6px;
+        letter-spacing: 1px;
+    }
+
+    .node-title {
+        font-size: 15px;
+        font-weight: 700;
+        margin-bottom: 8px;
+    }
+
+    .node-text {
+        font-size: 12px;
+        line-height: 1.4;
+        color: #94a3b8;
+    }
+
+    /* NODE CATEGORY COLORS */
+    .client { border-color: rgba(56,189,248,0.5); color: #38bdf8; }
+    .client .node-title { color: #38bdf8; }
+    
+    .server { border-color: rgba(52,211,153,0.5); color: #34d399; }
+    .server .node-title { color: #34d399; }
+
+    .logic { border-color: rgba(167,139,250,0.5); color: #a78bfa; }
+    .logic .node-title { color: #a78bfa; }
+
+    .response { border-color: rgba(251,191,36,0.5); color: #fbbf24; }
+    .response .node-title { color: #fbbf24; }
+
+    /* ================= ARROWS ================= */
+
+    .arrow {
+        width: 65px;
+        height: 2px;
+        background: #334155;
+        position: relative;
+        flex-shrink: 0;
+        transition: background 0.3s;
+    }
+
+    .arrow::after {
+        content: "";
+        position: absolute;
+        right: -1px;
+        top: 50%;
+        transform: translateY(-50%);
+        border-top: 5px solid transparent;
+        border-bottom: 5px solid transparent;
+        border-left: 8px solid #334155;
+        transition: border-left-color 0.3s;
+    }
+
+    .arrow.active {
+        background: #38bdf8;
+    }
+
+    .arrow.active::after {
+        border-left-color: #38bdf8;
+    }
+
+    .arrow-label {
+        position: absolute;
+        left: 50%;
+        top: -20px;
+        transform: translateX(-50%);
+        white-space: nowrap;
+        font-size: 10px;
+        color: #64748b;
+    }
+
+    /* ================= DATABASE SECTION ================= */
+
+    .database-section {
+        margin-top: 40px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .decision-arrow {
+        height: 35px;
+        width: 2px;
+        background: #fbbf24;
+        position: relative;
+    }
+
+    .decision-arrow::after {
+        content: "";
+        position: absolute;
+        bottom: -1px;
+        left: 50%;
+        transform: translateX(-50%);
+        border-left: 5px solid transparent;
+        border-right: 5px solid transparent;
+        border-top: 8px solid #fbbf24;
+    }
+
+    .decision {
+        width: 280px;
+        min-height: 80px;
+        background: rgba(251,191,36,0.06);
+        border: 2px dashed rgba(251,191,36,0.65);
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 12px;
+        cursor: pointer;
+        transition: transform 0.2s;
+    }
+
+    .decision:hover {
+        transform: scale(1.02);
+    }
+
+    .decision-title { color: #fbbf24; font-size: 14px; font-weight: bold; }
+    .decision-subtitle { color: #94a3b8; font-size: 11px; margin-top: 4px; }
+
+    /* ================= BRANCHES ================= */
+
+    .branches {
+        position: relative;
+        width: 700px;
+        max-width: 100%;
+        display: flex;
+        justify-content: space-between;
+        margin-top: 45px;
+    }
+
+    .branches::before {
+        content: "";
+        position: absolute;
+        top: -22px;
+        left: 25%;
+        width: 50%;
+        height: 2px;
+        background: #334155;
+    }
+
+    .branch {
+        width: 270px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        opacity: 0.4;
+        transition: opacity 0.3s ease;
+    }
+
+    .branch.selected-branch {
+        opacity: 1;
+    }
+
+    .branch-line {
+        width: 2px;
+        height: 22px;
+        background: #334155;
+        position: relative;
+    }
+
+    .branch-line::after {
+        content: "";
+        position: absolute;
+        bottom: -1px;
+        left: 50%;
+        transform: translateX(-50%);
+        border-left: 5px solid transparent;
+        border-right: 5px solid transparent;
+        border-top: 8px solid #334155;
+    }
+
+    .branch-label {
+        font-size: 11px;
+        font-weight: bold;
+        padding: 4px 12px;
+        border-radius: 20px;
+        margin-bottom: 8px;
+    }
+
+    .yes { color: #34d399; border: 1px solid rgba(52,211,153,0.4); background: rgba(52,211,153,0.08); }
+    .no { color: #f43f5e; border: 1px solid rgba(244,63,94,0.4); background: rgba(244,63,94,0.08); }
+
+    .database-node {
+        width: 270px;
+        min-height: 120px;
+        background: rgba(15,23,42,0.95);
+        border-radius: 14px;
+        padding: 18px;
+        text-align: center;
+        cursor: pointer;
+    }
+
+    .mongodb { border: 1px solid rgba(52,211,153,0.5); }
+    .mongodb .node-title { color: #34d399; }
+
+    .json { border: 1px solid rgba(244,63,94,0.5); }
+    .json .node-title { color: #f43f5e; }
+
+    /* ================= MERGE & RESPONSE FLOW ================= */
+
+    .merge {
+        margin-top: 30px;
+        width: 700px;
+        max-width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .merge-lines {
+        width: 50%;
+        height: 25px;
+        border-bottom: 2px solid #334155;
+        position: relative;
+    }
+
+    .merge-lines::before, .merge-lines::after {
+        content: "";
+        position: absolute;
+        bottom: 0;
+        width: 2px;
+        height: 25px;
+        background: #334155;
+    }
+    .merge-lines::before { left: 0; }
+    .merge-lines::after { right: 0; }
+
+    .merge-arrow {
+        width: 2px;
+        height: 30px;
+        background: #fbbf24;
+        position: relative;
+    }
+
+    .merge-arrow::after {
+        content: "";
+        position: absolute;
+        bottom: -1px;
+        left: 50%;
+        transform: translateX(-50%);
+        border-left: 5px solid transparent;
+        border-right: 5px solid transparent;
+        border-top: 8px solid #fbbf24;
+    }
+
+    .response-flow {
+        margin-top: 15px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    /* ================= DETAILS MODAL/PANEL ================= */
+
+    .info-panel {
+        margin-top: 35px;
+        width: 100%;
+        max-width: 900px;
+        background: rgba(15, 23, 42, 0.9);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        border-radius: 12px;
+        padding: 20px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    }
+
+    .info-title {
+        font-size: 18px;
+        font-weight: bold;
+        color: #38bdf8;
+        margin-bottom: 8px;
+    }
+
+    .info-body {
+        font-size: 13px;
+        color: #cbd5e1;
+        line-height: 1.6;
+    }
+
+    /* Responsive */
+    @media (max-width: 1100px) {
+        .main-flow, .response-flow { flex-wrap: wrap; gap: 15px; }
+        .arrow { display: none; }
+        .branches { width: 100%; }
+    }
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <!-- HEADER -->
+    <div class="header">
+        <h1>MarketNexus System Flowchart</h1>
+        <p>Interactive End-to-End Operational Execution &amp; Control Flow</p>
+    </div>
+
+    <!-- CONTROLS -->
+    <div class="controls">
+        <button class="btn" onclick="startFlowAnimation()">▶ Play Step Flow</button>
+        <button class="btn" onclick="nextStep()">⏭ Next Step</button>
+        <button class="btn btn-secondary" onclick="toggleDatabaseBranch()">🔀 Toggle DB Path (Current: <span id="db-type">MongoDB</span>)</button>
+        <button class="btn" onclick="resetFlow()">🔄 Reset</button>
+    </div>
+
+    <!-- MAIN HORIZONTAL FLOW -->
+    <div class="main-flow">
+        <div class="node client" id="node-1" onclick="showDetails(1)">
+            <div class="node-number">01</div>
+            <div class="node-title">CLIENT / SPA</div>
+            <div class="node-text">React Application<br>Router &amp; Context State</div>
+        </div>
+
+        <div class="arrow" id="arrow-1"><span class="arrow-label">User Action</span></div>
+
+        <div class="node client" id="node-2" onclick="showDetails(2)">
+            <div class="node-number">02</div>
+            <div class="node-title">AXIOS CLIENT</div>
+            <div class="node-text">API communication<br>JWT Authorization<br>HTTP / JSON</div>
+        </div>
+
+        <div class="arrow" id="arrow-2"><span class="arrow-label">HTTP Request</span></div>
+
+        <div class="node server" id="node-3" onclick="showDetails(3)">
+            <div class="node-number">03</div>
+            <div class="node-title">EXPRESS SERVER</div>
+            <div class="node-text">Middleware<br>Body Parsing<br>Health Check</div>
+        </div>
+
+        <div class="arrow" id="arrow-3"><span class="arrow-label">Route Match</span></div>
+
+        <div class="node server" id="node-4" onclick="showDetails(4)">
+            <div class="node-number">04</div>
+            <div class="node-title">API CONTROLLERS</div>
+            <div class="node-text">/auth · /products<br>/orders · /reviews</div>
+        </div>
+
+        <div class="arrow" id="arrow-4"><span class="arrow-label">Invoke Logic</span></div>
+
+        <div class="node logic" id="node-5" onclick="showDetails(5)">
+            <div class="node-number">05</div>
+            <div class="node-title">BUSINESS LOGIC</div>
+            <div class="node-text">Authentication<br>Security &amp; Roles<br>Services &amp; Utilities</div>
+        </div>
+    </div>
+
+    <!-- DATABASE DECISION -->
+    <div class="database-section">
+        <div class="decision-arrow"></div>
+        <div class="decision" id="node-6" onclick="showDetails(6)">
+            <div>
+                <div class="decision-title">Is MongoDB Connected?</div>
+                <div class="decision-subtitle">Dynamic connection check via MONGODB_URI</div>
+            </div>
+        </div>
+
+        <!-- BRANCHES -->
+        <div class="branches">
+            <div class="branch selected-branch" id="branch-mongo">
+                <div class="branch-label yes">YES — PRIMARY PATH</div>
+                <div class="branch-line"></div>
+                <div class="database-node mongodb" id="node-mongo" onclick="showDetails('mongo')">
+                    <div class="node-title">MongoDB Atlas</div>
+                    <div class="node-text">Native database queries<br><br>users · products · orders<br>reviews · vendors</div>
+                </div>
+            </div>
+
+            <div class="branch" id="branch-json">
+                <div class="branch-label no">NO — FALLBACK PATH</div>
+                <div class="branch-line"></div>
+                <div class="database-node json" id="node-json" onclick="showDetails('json')">
+                    <div class="node-title">JSON File Engine</div>
+                    <div class="node-text">server/db_data.json<br><br>Built-in query parser<br>$eq · $in · $regex</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- MERGE -->
+        <div class="merge">
+            <div class="merge-lines"></div>
+            <div class="merge-arrow"></div>
+        </div>
+
+        <!-- RESPONSE FLOW -->
+        <div class="response-flow">
+            <div class="node response" id="node-7" onclick="showDetails(7)">
+                <div class="node-title">DATA RESPONSE</div>
+                <div class="node-text">JSON Payload<br>HTTP Response</div>
+            </div>
+
+            <div class="arrow" id="arrow-5"><span class="arrow-label">State Update</span></div>
+
+            <div class="node client" id="node-8" onclick="showDetails(8)">
+                <div class="node-title">REACT CONTEXT</div>
+                <div class="node-text">Axios Promise<br>State Synchronization</div>
+            </div>
+
+            <div class="arrow" id="arrow-6"><span class="arrow-label">Re-render</span></div>
+
+            <div class="node client" id="node-9" onclick="showDetails(9)">
+                <div class="node-title">UI RENDER</div>
+                <div class="node-text">Fresh catalog<br>Order status<br>Cart updates</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- INFORMATION PANEL -->
+    <div class="info-panel" id="info-panel">
+        <div class="info-title" id="info-title">Interactive Flowchart Ready</div>
+        <div class="info-body" id="info-body">Click on any node in the diagram or press "Play Step Flow" above to trace execution step-by-step through the MarketNexus architecture.</div>
+    </div>
+
+</div>
+
+<script>
+    let currentStep = 0;
+    let isMongo = true;
+    let timer = null;
+
+    const nodeDetails = {
+        1: { title: "01. Client / SPA (React)", body: "The entry point of the client application. Handles view rendering, UI components, client-side routing via React Router, and local state management via React Context." },
+        2: { title: "02. Axios Client", body: "Centralized HTTP client instance. Automatically attaches Bearer JWT tokens to outbound authorization headers and standardizes RESTful requests/responses." },
+        3: { title: "03. Express Server", body: "Node.js core backend listener. Applies CORS, JSON body-parsing middleware, security headers, and routes incoming traffic." },
+        4: { title: "04. API Controllers", body: "Handles endpoint mapping (`/auth`, `/products`, `/orders`, `/reviews`, `/admin`). Validates request payloads and maps endpoints to corresponding services." },
+        5: { title: "05. Business Logic Layer", body: "Executes core application logic, checks user access permissions/roles, performs business rule validation, and prepares database operations." },
+        6: { title: "Decision: Dynamic Database Connection", body: "Checks whether a valid `MONGODB_URI` environment variable is available and connected. Dynamically switches between MongoDB Atlas and a local JSON fallback file." },
+        mongo: { title: "Primary Storage: MongoDB Atlas", body: "Cloud NoSQL database hosting operational collections (`users`, `products`, `orders`, `reviews`, `vendors`). Performs indexing, aggregations, and standard ACID transactions." },
+        json: { title: "Fallback Storage: JSON File Engine", body: "Local development/fallback store (`server/db_data.json`). Uses an internal query parser implementing query operators such as `$eq`, `$in`, and `$regex`." },
+        7: { title: "07. Data Response", body: "Serializes queried model data into standardized JSON responses and returns HTTP status codes (200 OK, 201 Created, etc.) back through Express." },
+        8: { title: "08. React Context / State", body: "Resolves the Axios asynchronous Promise, updates application-level React Context/Redux store, and synchronizes client cache." },
+        9: { title: "09. UI Re-render", body: "React triggers a virtual DOM diff and re-renders updated UI components, displaying fresh product listings, order confirmation statuses, or updated shopping carts." }
+    };
+
+    function updateStepVisuals() {
+        // Clear active classes
+        document.querySelectorAll('.node, .arrow').forEach(el => el.classList.remove('active-step', 'active'));
+
+        const steps = [
+            { node: 'node-1', arrow: 'arrow-1', detailKey: 1 },
+            { node: 'node-2', arrow: 'arrow-2', detailKey: 2 },
+            { node: 'node-3', arrow: 'arrow-3', detailKey: 3 },
+            { node: 'node-4', arrow: 'arrow-4', detailKey: 4 },
+            { node: 'node-5', arrow: null, detailKey: 5 },
+            { node: 'node-6', arrow: null, detailKey: 6 },
+            { node: isMongo ? 'node-mongo' : 'node-json', arrow: null, detailKey: isMongo ? 'mongo' : 'json' },
+            { node: 'node-7', arrow: 'arrow-5', detailKey: 7 },
+            { node: 'node-8', arrow: 'arrow-6', detailKey: 8 },
+            { node: 'node-9', arrow: null, detailKey: 9 }
+        ];
+
+        if (currentStep > 0 && currentStep <= steps.length) {
+            const step = steps[currentStep - 1];
+            const activeNode = document.getElementById(step.node);
+            if (activeNode) activeNode.classList.add('active-step');
+
+            if (step.arrow) {
+                const activeArrow = document.getElementById(step.arrow);
+                if (activeArrow) activeArrow.classList.add('active');
+            }
+
+            showDetails(step.detailKey);
+        }
+    }
+
+    function nextStep() {
+        currentStep = (currentStep >= 10) ? 1 : currentStep + 1;
+        updateStepVisuals();
+    }
+
+    function startFlowAnimation() {
+        clearInterval(timer);
+        currentStep = 0;
+        nextStep();
+        timer = setInterval(() => {
+            if (currentStep >= 10) {
+                clearInterval(timer);
+            } else {
+                nextStep();
+            }
+        }, 1800);
+    }
+
+    function resetFlow() {
+        clearInterval(timer);
+        currentStep = 0;
+        document.querySelectorAll('.node, .arrow').forEach(el => el.classList.remove('active-step', 'active'));
+        document.getElementById('info-title').innerText = "Interactive Flowchart Ready";
+        document.getElementById('info-body').innerText = "Click on any node in the diagram or press \"Play Step Flow\" above to trace execution step-by-step through the MarketNexus architecture.";
+    }
+
+    function toggleDatabaseBranch() {
+        isMongo = !isMongo;
+        document.getElementById('db-type').innerText = isMongo ? "MongoDB" : "JSON Engine";
+        
+        const mongoBranch = document.getElementById('branch-mongo');
+        const jsonBranch = document.getElementById('branch-json');
+
+        if (isMongo) {
+            mongoBranch.classList.add('selected-branch');
+            jsonBranch.classList.remove('selected-branch');
+        } else {
+            jsonBranch.classList.add('selected-branch');
+            mongoBranch.classList.remove('selected-branch');
+        }
+
+        if (currentStep === 7) {
+            updateStepVisuals();
+        }
+    }
+
+    function showDetails(key) {
+        const detail = nodeDetails[key];
+        if (detail) {
+            document.getElementById('info-title').innerText = detail.title;
+            document.getElementById('info-body').innerText = detail.body;
+        }
+    }
+</script>
+
+</body>
+</html>

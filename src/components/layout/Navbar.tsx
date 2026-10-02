@@ -36,7 +36,7 @@ interface NavbarProps {
 }
 
 export const Navbar: React.FC<NavbarProps> = ({ currentView, onNavigate, onOpenCompass }) => {
-  const { user, logout, switchRole, openAuthModal, isAuthenticated } = useAuth();
+  const { user, logout, openAuthModal, isAuthenticated } = useAuth();
   const { itemCount, wishlist, showToast } = useCart();
   const { compareItems } = useComparison();
 
@@ -447,6 +447,23 @@ export const Navbar: React.FC<NavbarProps> = ({ currentView, onNavigate, onOpenC
           </div>
         </div>
       </div>
+
+      {isMobileMenuOpen && (
+        <div className="md:hidden border-t border-slate-200 bg-white px-4 py-3 shadow-lg">
+          <div className="grid grid-cols-2 gap-2 text-xs font-bold">
+            {[['home', 'Home'], ['catalog', 'Catalog'], ['comparison', 'Compare'], ['cart', 'Cart']].map(([view, label]) => (
+              <button key={view} onClick={() => { setIsMobileMenuOpen(false); onNavigate(view); }} className="rounded-xl bg-slate-50 border border-slate-200 px-3 py-2.5 text-left text-slate-700 hover:bg-indigo-50 hover:text-indigo-700">{label}</button>
+            ))}
+            {isAuthenticated && <>
+              <button onClick={() => { setIsMobileMenuOpen(false); onNavigate('profile'); }} className="rounded-xl bg-slate-50 border border-slate-200 px-3 py-2.5 text-left text-slate-700 hover:bg-indigo-50 hover:text-indigo-700">My Account</button>
+              <button onClick={() => { setIsMobileMenuOpen(false); onNavigate('orders'); }} className="rounded-xl bg-slate-50 border border-slate-200 px-3 py-2.5 text-left text-slate-700 hover:bg-indigo-50 hover:text-indigo-700">My Orders</button>
+              {user?.role === 'vendor' && <button onClick={() => { setIsMobileMenuOpen(false); onNavigate('vendor-dashboard'); }} className="col-span-2 rounded-xl bg-amber-50 border border-amber-200 px-3 py-2.5 text-left text-amber-800">Vendor Portal</button>}
+              {user?.role === 'admin' && <><button onClick={() => { setIsMobileMenuOpen(false); onNavigate('admin-dashboard'); }} className="rounded-xl bg-indigo-50 border border-indigo-200 px-3 py-2.5 text-left text-indigo-800">Admin Console</button><button onClick={() => { setIsMobileMenuOpen(false); onOpenCompass(); }} className="rounded-xl bg-emerald-50 border border-emerald-200 px-3 py-2.5 text-left text-emerald-800">Compass Studio</button></>}
+            </>}
+            {!isAuthenticated && <button onClick={() => { setIsMobileMenuOpen(false); openAuthModal('login'); }} className="col-span-2 rounded-xl bg-indigo-600 px-3 py-2.5 text-white text-left">Sign In</button>}
+          </div>
+        </div>
+      )}
 
       {/* Subnav Navigation Links */}
       <nav className="bg-slate-50 border-t border-slate-200/80 px-4 sm:px-6">

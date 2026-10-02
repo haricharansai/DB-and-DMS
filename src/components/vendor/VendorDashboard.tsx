@@ -32,39 +32,11 @@ interface VendorDashboardProps {
   onNavigate: (view: string, param?: string) => void;
 }
 
-export const VendorDashboard: React.FC<VendorDashboardProps> = ({ onNavigate }) => {
+const VendorDashboardContent: React.FC<VendorDashboardProps> = ({ onNavigate }) => {
   const { user, openAuthModal } = useAuth();
   const [products, setProducts] = useState<Product[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-
-  if (user?.role !== 'vendor' && user?.role !== 'admin') {
-    return (
-      <div className="max-w-md mx-auto my-16 p-8 bg-white rounded-3xl border border-slate-200 shadow-xl text-center space-y-4">
-        <div className="w-14 h-14 bg-amber-50 text-amber-600 rounded-2xl flex items-center justify-center mx-auto">
-          <Store className="w-7 h-7" />
-        </div>
-        <h2 className="text-xl font-extrabold text-slate-900 font-heading">Merchant Access Required</h2>
-        <p className="text-xs text-slate-500">
-          The Vendor Portal is reserved for verified sellers. You are currently logged in as a Customer.
-        </p>
-        <div className="pt-2 flex flex-col gap-2">
-          <button
-            onClick={() => openAuthModal('register')}
-            className="w-full bg-amber-500 hover:bg-amber-600 text-white font-bold py-2.5 rounded-xl text-xs shadow-md transition cursor-pointer"
-          >
-            Register as Merchant Partner
-          </button>
-          <button
-            onClick={() => onNavigate('home')}
-            className="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2 rounded-xl text-xs transition cursor-pointer"
-          >
-            Return to Shopping
-          </button>
-        </div>
-      </div>
-    );
-  }
 
   // Add/Edit Product Modal
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -80,7 +52,7 @@ export const VendorDashboard: React.FC<VendorDashboardProps> = ({ onNavigate }) 
   const [thumbnail, setThumbnail] = useState('https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&auto=format&fit=crop&q=80');
   const [description, setDescription] = useState('');
 
-  const vendorId = user?.vendorProfile?.id || 'ven_audio';
+  const vendorId = user?.vendorId || user?.vendorProfile?.id || '';
 
   const fetchData = async () => {
     try {
@@ -93,7 +65,7 @@ export const VendorDashboard: React.FC<VendorDashboardProps> = ({ onNavigate }) 
       if (prodRes.data.products) {
         // Filter by this vendor or show all if admin/test
         const vendorProds = prodRes.data.products.filter(
-          (p: Product) => p.vendorId === vendorId || user?.role === 'admin'
+          (p: Product) => user?.role === 'admin' || (!!vendorId && p.vendorId === vendorId)
         );
         setProducts(vendorProds);
       }
@@ -112,17 +84,16 @@ export const VendorDashboard: React.FC<VendorDashboardProps> = ({ onNavigate }) 
     fetchData();
   }, [user]);
 
-  const totalRevenue = products.reduce((acc, p) => acc + p.price * 3, 1428000);
-
-  const salesData = [
-    { month: 'Jan', revenue: 240000, orders: 42 },
-    { month: 'Feb', revenue: 380000, orders: 65 },
-    { month: 'Mar', revenue: 520000, orders: 88 },
-    { month: 'Apr', revenue: 490000, orders: 74 },
-    { month: 'May', revenue: 780000, orders: 120 },
-    { month: 'Jun', revenue: 950000, orders: 145 },
-    { month: 'Jul', revenue: 1428000, orders: 198 },
-  ];
+  const vendorSubOrders = orders.flatMap((order) => (order.subOrders || []).filter((subOrder) => user?.role === 'admin' || subOrder.vendorId === vendorId));
+  const totalRevenue = vendorSubOrders.reduce((sum, subOrder) => sum + subOrder.subtotal, 0);
+  const salesData = Array.from({ length: 7 }, (_, offset) => {
+    const date = new Date();
+    date.setDate(date.getDate() - (6 - offset));
+    const key = date.toISOString().slice(0, 10);
+    const dailyOrders = orders.filter((order) => order.createdAt?.slice(0, 10) === key);
+    const dailySubOrders = dailyOrders.flatMap((order) => (order.subOrders || []).filter((subOrder) => user?.role === 'admin' || subOrder.vendorId === vendorId));
+    return { month: date.toLocaleDateString('en-IN', { weekday: 'short' }), revenue: dailySubOrders.reduce((sum, subOrder) => sum + subOrder.subtotal, 0), orders: dailySubOrders.length };
+  });
 
   const handleOpenAddModal = () => {
     setEditingProduct(null);
@@ -557,4 +528,22 @@ export const VendorDashboard: React.FC<VendorDashboardProps> = ({ onNavigate }) 
       )}
     </div>
   );
+};
+
+export const VendorDashboard: React.FC<VendorDashboardProps> = (props) => {
+  const { user, openAuthModal } = useAuth();
+  if (user?.role !== 'vendor' && user?.role !== 'admin') {
+    return (
+      <div className="max-w-md mx-auto my-16 p-8 bg-white rounded-3xl border border-slate-200 shadow-xl text-center space-y-4">
+        <div className="w-14 h-14 bg-amber-50 text-amber-600 rounded-2xl flex items-center justify-center mx-auto"><Store className="w-7 h-7" /></div>
+        <h2 className="text-xl font-extrabold text-slate-900 font-heading">Merchant Access Required</h2>
+        <p className="text-xs text-slate-500">The Vendor Portal is reserved for verified sellers.</p>
+        <div className="pt-2 flex flex-col gap-2">
+          <button onClick={() => openAuthModal('register')} className="w-full bg-amber-500 hover:bg-amber-600 text-white font-bold py-2.5 rounded-xl text-xs shadow-md transition cursor-pointer">Register as Merchant Partner</button>
+          <button onClick={() => props.onNavigate('home')} className="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2 rounded-xl text-xs transition cursor-pointer">Return to Shopping</button>
+        </div>
+      </div>
+    );
+  }
+  return <VendorDashboardContent {...props} />;
 };

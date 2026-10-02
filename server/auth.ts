@@ -3,7 +3,10 @@ import bcrypt from 'bcryptjs';
 import { Request, Response, NextFunction } from 'express';
 import { db } from './db';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'marketnexus_jwt_super_secret_key_2025';
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET || JWT_SECRET.length < 32) {
+  throw new Error('JWT_SECRET must be configured with at least 32 characters');
+}
 const JWT_EXPIRES_IN = '7d';
 
 export interface TokenPayload {
