@@ -91,6 +91,10 @@ export const ordersAPI = {
     api.put<{ success: boolean; order: Order }>(`/orders/${id}/status`, data),
 };
 
+export const purchasesAPI = {
+  getAll: () => api.get<{ success: boolean; purchases: Array<any> }>('/purchases'),
+};
+
 export const reviewsAPI = {
   getByProduct: (productId: string) =>
     api.get<{ success: boolean; reviews: Review[] }>('/reviews', { params: { productId } }),

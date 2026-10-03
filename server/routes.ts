@@ -390,6 +390,15 @@ router.get('/orders', authenticateJWT, (req: AuthenticatedRequest, res: Response
   res.json({ success: true, orders });
 });
 
+// Item-level purchase history for the signed-in customer.
+router.get('/purchases', authenticateJWT, (req: AuthenticatedRequest, res: Response) => {
+  const user = req.user!;
+  const purchases = user.role === 'admin'
+    ? db.find('customer_purchases', {}, { sort: { purchasedAt: -1 } })
+    : db.find('customer_purchases', { userId: user.userId }, { sort: { purchasedAt: -1 } });
+  res.json({ success: true, purchases });
+});
+
 router.get('/orders/:id', authenticateJWT, (req: AuthenticatedRequest, res: Response) => {
   const order = db.findById('orders', req.params.id);
   if (!order) {
@@ -510,6 +519,24 @@ router.post('/orders', authenticateJWT, async (req: AuthenticatedRequest, res: R
       status: 'confirmed',
       overallTrackingNumber: trackingCode
     });
+
+    // Keep one item-level record per purchased product so a customer's complete
+    // history can be queried without unpacking every order document.
+    const purchasedAt = newOrder.createdAt;
+    for (const item of validatedItems) {
+      db.insertOne('customer_purchases', {
+        userId: newOrder.userId,
+        orderId,
+        productId: item.productId,
+        title: item.title,
+        price: item.price,
+        quantity: item.quantity,
+        thumbnail: item.thumbnail,
+        vendorId: item.vendorId,
+        vendorName: item.vendorName,
+        purchasedAt
+      });
+    }
 
     // Reduce stock
     for (const item of validatedItems) {

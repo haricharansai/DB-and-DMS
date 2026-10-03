@@ -133,6 +133,8 @@ export function createAtlasIndexPlan(vectorDimensions = 768, eventTtlSeconds = 9
       ordinaryIndex('orders', 'orders_id_unique', { id: 1 }, { unique: true }),
       ordinaryIndex('orders', 'orders_user_created', { userId: 1, createdAt: -1 }),
       ordinaryIndex('orders', 'orders_created', { createdAt: -1 }),
+      ordinaryIndex('customer_purchases', 'customer_purchases_user_purchased', { userId: 1, purchasedAt: -1 }),
+      ordinaryIndex('customer_purchases', 'customer_purchases_order', { orderId: 1 }),
       ordinaryIndex('audit_logs', 'audit_logs_id_unique', { id: 1 }, { unique: true }),
       ordinaryIndex('audit_logs', 'audit_logs_created', { createdAt: -1 }),
       ordinaryIndex('product_image_embeddings', 'product_image_embeddings_product_media_unique', { productId: 1, mediaId: 1 }, { unique: true }),

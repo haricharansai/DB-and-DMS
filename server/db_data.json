@@ -97859,7 +97859,7 @@
         "moderationStatus": "not_run"
       },
       "createdAt": "2026-10-02T10:49:22.282Z",
-      "updatedAt": "2026-10-02T11:09:48.455Z"
+      "updatedAt": "2026-10-02T10:49:22.282Z"
     }
   ],
   "users": [
@@ -98094,6 +98094,31 @@
       ],
       "createdAt": "2026-10-02T10:53:21.338Z",
       "updatedAt": "2026-10-02T10:53:21.338Z"
+    },
+    {
+      "_id": "6abfe3573178ca1fc467dbc0",
+      "id": "6abfe3575ef1c532ed809190",
+      "name": "customer1",
+      "email": "customer@gmail.com",
+      "passwordHash": "$2b$10$cVpft9tsXduKspsq9vUrBelTj6XuSP2OXebgmZrFp5KUQcgshg7Ye",
+      "role": "buyer",
+      "phone": "",
+      "vendorId": null,
+      "avatar": "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80",
+      "savedAddresses": [
+        {
+          "id": "addr_1790960471210",
+          "fullName": "customer1",
+          "phone": "+91 98765 43210",
+          "street": "123 Tech Residency, MG Road",
+          "city": "Bengaluru",
+          "state": "Karnataka",
+          "zipCode": "560001",
+          "isDefault": true
+        }
+      ],
+      "createdAt": "2026-10-02T17:01:11.211Z",
+      "updatedAt": "2026-10-02T17:01:11.214Z"
     }
   ],
   "reviews": [
@@ -98130,29 +98155,31 @@
   ],
   "orders": [
     {
-      "_id": "6abf90fc9c7c8c1d09046d52",
-      "id": "ord_27870f2a-e72f-417b-ba75-2d1a88b7bfc5",
-      "userId": "u_buyer_demo",
-      "customerName": "Aarav Patel",
-      "customerEmail": "buyer@marketnexus.io",
+      "_id": "6ac0b90a1f8eeae728aaf65b",
+      "id": "ord_616a5865-1c73-42c7-b03c-4c14a4a22ff2",
+      "userId": "6abf8d21caec4e6e3e0f1f66",
+      "customerName": "Vamsi",
+      "customerEmail": "vamsi@gmail.com",
       "customerPhone": "+91 98765 43210",
       "shippingAddress": {
-        "id": "addr_1",
+        "id": "addr_1790938401338",
         "fullName": "Vamsi",
         "phone": "+91 98765 43210",
         "street": "123 Tech Residency, MG Road",
         "city": "Bengaluru",
         "state": "Karnataka",
-        "zipCode": "560001"
+        "zipCode": "560001",
+        "isDefault": true
       },
       "items": [
         {
-          "vendorId": "6abf89ef0c3d0fb235b86379",
           "productId": "prod_11252973eeaf",
-          "quantity": 1,
-          "price": 285,
-          "thumbnail": "https://encrypted-tbn2.gstatic.com/shopping?q=tbn:ANd9GcTS-j4iNih4-FHYcC_URcsf88XM9UhPOFCROu0r_6xI8veLNOdUSNqzHv9TWi92lx_-rqzK5ey5zwBzDsZVQ4t5RCntKxwKRItlVA29km4TTCkms26nqDJorBzc",
           "title": "fogg majestic Black",
+          "price": 285,
+          "quantity": 1,
+          "selectedColor": "Default",
+          "thumbnail": "https://encrypted-tbn2.gstatic.com/shopping?q=tbn:ANd9GcTS-j4iNih4-FHYcC_URcsf88XM9UhPOFCROu0r_6xI8veLNOdUSNqzHv9TWi92lx_-rqzK5ey5zwBzDsZVQ4t5RCntKxwKRItlVA29km4TTCkms26nqDJorBzc",
+          "vendorId": "6abf89ef0c3d0fb235b86379",
           "vendorName": "Dayal Traders "
         }
       ],
@@ -98162,27 +98189,28 @@
           "vendorName": "Dayal Traders ",
           "items": [
             {
-              "vendorId": "6abf89ef0c3d0fb235b86379",
               "productId": "prod_11252973eeaf",
-              "quantity": 1,
-              "price": 285,
-              "thumbnail": "https://encrypted-tbn2.gstatic.com/shopping?q=tbn:ANd9GcTS-j4iNih4-FHYcC_URcsf88XM9UhPOFCROu0r_6xI8veLNOdUSNqzHv9TWi92lx_-rqzK5ey5zwBzDsZVQ4t5RCntKxwKRItlVA29km4TTCkms26nqDJorBzc",
               "title": "fogg majestic Black",
+              "price": 285,
+              "quantity": 1,
+              "selectedColor": "Default",
+              "thumbnail": "https://encrypted-tbn2.gstatic.com/shopping?q=tbn:ANd9GcTS-j4iNih4-FHYcC_URcsf88XM9UhPOFCROu0r_6xI8veLNOdUSNqzHv9TWi92lx_-rqzK5ey5zwBzDsZVQ4t5RCntKxwKRItlVA29km4TTCkms26nqDJorBzc",
+              "vendorId": "6abf89ef0c3d0fb235b86379",
               "vendorName": "Dayal Traders "
             }
           ],
           "subtotal": 285,
           "shippingFee": 99,
           "status": "confirmed",
-          "trackingNumber": "FDX-AA4D3FCA300C",
+          "trackingNumber": "FDX-76AB13095CB8",
           "courier": "FedEx Express Courier",
-          "estimatedDelivery": "2026-10-04T11:09:48.451Z",
+          "estimatedDelivery": "2026-10-05T08:12:58.491Z",
           "milestones": [
             {
               "status": "placed",
               "label": "Order Placed",
-              "description": "Order ord_27870f2a-e72f-417b-ba75-2d1a88b7bfc5 confirmed with online payment.",
-              "timestamp": "2026-10-02T11:09:48.451Z",
+              "description": "Order ord_616a5865-1c73-42c7-b03c-4c14a4a22ff2 confirmed with online payment.",
+              "timestamp": "2026-10-03T08:12:58.491Z",
               "completed": true,
               "current": false
             },
@@ -98190,7 +98218,7 @@
               "status": "confirmed",
               "label": "Confirmed by Seller",
               "description": "Dayal Traders  acknowledged the order.",
-              "timestamp": "2026-10-02T11:09:48.451Z",
+              "timestamp": "2026-10-03T08:12:58.491Z",
               "completed": true,
               "current": true
             },
@@ -98237,9 +98265,9 @@
       "paymentMethod": "card",
       "paymentStatus": "pending",
       "status": "confirmed",
-      "overallTrackingNumber": "FDX-C2553DFF9A36",
-      "createdAt": "2026-10-02T11:09:48.452Z",
-      "updatedAt": "2026-10-02T11:09:48.452Z"
+      "overallTrackingNumber": "FDX-BDE173A8A485",
+      "createdAt": "2026-10-03T08:12:58.491Z",
+      "updatedAt": "2026-10-03T08:12:58.491Z"
     },
     {
       "_id": "6a9919398b025456a9190644",
@@ -99178,17 +99206,307 @@
       "overallTrackingNumber": "FDX-A34C9724C3ED",
       "createdAt": "2026-10-02T11:03:40.448Z",
       "updatedAt": "2026-10-02T11:03:40.448Z"
+    },
+    {
+      "_id": "6abf90fc9c7c8c1d09046d52",
+      "id": "ord_27870f2a-e72f-417b-ba75-2d1a88b7bfc5",
+      "userId": "u_buyer_demo",
+      "customerName": "Aarav Patel",
+      "customerEmail": "buyer@marketnexus.io",
+      "customerPhone": "+91 98765 43210",
+      "shippingAddress": {
+        "id": "addr_1",
+        "fullName": "Vamsi",
+        "phone": "+91 98765 43210",
+        "street": "123 Tech Residency, MG Road",
+        "city": "Bengaluru",
+        "state": "Karnataka",
+        "zipCode": "560001"
+      },
+      "items": [
+        {
+          "vendorId": "6abf89ef0c3d0fb235b86379",
+          "productId": "prod_11252973eeaf",
+          "quantity": 1,
+          "price": 285,
+          "thumbnail": "https://encrypted-tbn2.gstatic.com/shopping?q=tbn:ANd9GcTS-j4iNih4-FHYcC_URcsf88XM9UhPOFCROu0r_6xI8veLNOdUSNqzHv9TWi92lx_-rqzK5ey5zwBzDsZVQ4t5RCntKxwKRItlVA29km4TTCkms26nqDJorBzc",
+          "title": "fogg majestic Black",
+          "vendorName": "Dayal Traders "
+        }
+      ],
+      "subOrders": [
+        {
+          "vendorId": "6abf89ef0c3d0fb235b86379",
+          "vendorName": "Dayal Traders ",
+          "items": [
+            {
+              "vendorId": "6abf89ef0c3d0fb235b86379",
+              "productId": "prod_11252973eeaf",
+              "quantity": 1,
+              "price": 285,
+              "thumbnail": "https://encrypted-tbn2.gstatic.com/shopping?q=tbn:ANd9GcTS-j4iNih4-FHYcC_URcsf88XM9UhPOFCROu0r_6xI8veLNOdUSNqzHv9TWi92lx_-rqzK5ey5zwBzDsZVQ4t5RCntKxwKRItlVA29km4TTCkms26nqDJorBzc",
+              "title": "fogg majestic Black",
+              "vendorName": "Dayal Traders "
+            }
+          ],
+          "subtotal": 285,
+          "shippingFee": 99,
+          "status": "confirmed",
+          "trackingNumber": "FDX-AA4D3FCA300C",
+          "courier": "FedEx Express Courier",
+          "estimatedDelivery": "2026-10-04T11:09:48.451Z",
+          "milestones": [
+            {
+              "status": "placed",
+              "label": "Order Placed",
+              "description": "Order ord_27870f2a-e72f-417b-ba75-2d1a88b7bfc5 confirmed with online payment.",
+              "timestamp": "2026-10-02T11:09:48.451Z",
+              "completed": true,
+              "current": false
+            },
+            {
+              "status": "confirmed",
+              "label": "Confirmed by Seller",
+              "description": "Dayal Traders  acknowledged the order.",
+              "timestamp": "2026-10-02T11:09:48.451Z",
+              "completed": true,
+              "current": true
+            },
+            {
+              "status": "processing",
+              "label": "Packing at Warehouse",
+              "description": "Item being safely packaged.",
+              "timestamp": "",
+              "completed": false,
+              "current": false
+            },
+            {
+              "status": "shipped",
+              "label": "Dispatched via Courier",
+              "description": "Handed over to carrier partner.",
+              "timestamp": "",
+              "completed": false,
+              "current": false
+            },
+            {
+              "status": "out_for_delivery",
+              "label": "Out for Delivery",
+              "description": "Courier out for final mile delivery.",
+              "timestamp": "",
+              "completed": false,
+              "current": false
+            },
+            {
+              "status": "delivered",
+              "label": "Delivered",
+              "description": "Delivered to customer doorstep.",
+              "timestamp": "",
+              "completed": false,
+              "current": false
+            }
+          ]
+        }
+      ],
+      "subtotal": 285,
+      "tax": 51.3,
+      "shippingTotal": 99,
+      "discount": 0,
+      "totalAmount": 435.3,
+      "paymentMethod": "card",
+      "paymentStatus": "pending",
+      "status": "confirmed",
+      "overallTrackingNumber": "FDX-C2553DFF9A36",
+      "createdAt": "2026-10-02T11:09:48.452Z",
+      "updatedAt": "2026-10-02T11:09:48.452Z"
+    }
+  ],
+  "customer_purchases": [
+    {
+      "_id": "6ac0b90a50be138ab19a0c63",
+      "id": "6ac0b90a38935281cbed5fc6",
+      "userId": "6abf8d21caec4e6e3e0f1f66",
+      "orderId": "ord_616a5865-1c73-42c7-b03c-4c14a4a22ff2",
+      "productId": "prod_11252973eeaf",
+      "title": "fogg majestic Black",
+      "price": 285,
+      "quantity": 1,
+      "thumbnail": "https://encrypted-tbn2.gstatic.com/shopping?q=tbn:ANd9GcTS-j4iNih4-FHYcC_URcsf88XM9UhPOFCROu0r_6xI8veLNOdUSNqzHv9TWi92lx_-rqzK5ey5zwBzDsZVQ4t5RCntKxwKRItlVA29km4TTCkms26nqDJorBzc",
+      "vendorId": "6abf89ef0c3d0fb235b86379",
+      "vendorName": "Dayal Traders ",
+      "purchasedAt": "2026-10-03T08:12:58.491Z",
+      "createdAt": "2026-10-03T08:12:58.492Z",
+      "updatedAt": "2026-10-03T08:12:58.492Z"
+    },
+    {
+      "_id": "6ac0b887c09a490a43197525",
+      "id": "6ac0b887961e3c9e49685acb",
+      "userId": "u_buyer_demo",
+      "orderId": "ord_27870f2a-e72f-417b-ba75-2d1a88b7bfc5",
+      "productId": "prod_11252973eeaf",
+      "title": "fogg majestic Black",
+      "price": 285,
+      "quantity": 1,
+      "thumbnail": "https://encrypted-tbn2.gstatic.com/shopping?q=tbn:ANd9GcTS-j4iNih4-FHYcC_URcsf88XM9UhPOFCROu0r_6xI8veLNOdUSNqzHv9TWi92lx_-rqzK5ey5zwBzDsZVQ4t5RCntKxwKRItlVA29km4TTCkms26nqDJorBzc",
+      "vendorId": "6abf89ef0c3d0fb235b86379",
+      "vendorName": "Dayal Traders ",
+      "purchasedAt": "2026-10-02T11:09:48.452Z",
+      "createdAt": "2026-10-03T08:10:47.767Z",
+      "updatedAt": "2026-10-03T08:10:47.767Z"
+    },
+    {
+      "_id": "6ac0b88782711e4e60c708f9",
+      "id": "6ac0b887893ec40e75bc9369",
+      "userId": "6abf8d21caec4e6e3e0f1f66",
+      "orderId": "ord_47a483fe-d300-46cc-ad1f-3409165737f9",
+      "productId": "prod_11252973eeaf",
+      "title": "fogg majestic Black",
+      "price": 285,
+      "quantity": 1,
+      "thumbnail": "https://encrypted-tbn2.gstatic.com/shopping?q=tbn:ANd9GcTS-j4iNih4-FHYcC_URcsf88XM9UhPOFCROu0r_6xI8veLNOdUSNqzHv9TWi92lx_-rqzK5ey5zwBzDsZVQ4t5RCntKxwKRItlVA29km4TTCkms26nqDJorBzc",
+      "vendorId": "6abf89ef0c3d0fb235b86379",
+      "vendorName": "Dayal Traders ",
+      "purchasedAt": "2026-10-02T11:03:40.448Z",
+      "createdAt": "2026-10-03T08:10:47.767Z",
+      "updatedAt": "2026-10-03T08:10:47.767Z"
+    },
+    {
+      "_id": "6ac0b8870b10473524f88dbb",
+      "id": "6ac0b8877643077a5eeb866a",
+      "userId": "6aba2396964136d29800cab2",
+      "orderId": "ord_2752431",
+      "productId": "prod_wh1000xm5",
+      "title": "Sony WH-1000XM5 Wireless Noise-Canceling Headphones",
+      "price": 29990,
+      "quantity": 1,
+      "thumbnail": "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&auto=format&fit=crop&q=80",
+      "vendorId": "v_soundcrafters",
+      "vendorName": "SoundCrafters Pro",
+      "purchasedAt": "2026-09-28T08:25:23.357Z",
+      "createdAt": "2026-10-03T08:10:47.767Z",
+      "updatedAt": "2026-10-03T08:10:47.767Z"
+    },
+    {
+      "_id": "6ac0b8871a132d7d6a1a2aef",
+      "id": "6ac0b887a8f07ded737ec77f",
+      "userId": "6aba2396964136d29800cab2",
+      "orderId": "ord_6731835",
+      "productId": "csv_1b26879171e821d8092aed67d50182f4",
+      "title": "Team Associated 1658 Factory Team Hex Driver Bit, 1/16\"",
+      "price": 937,
+      "quantity": 1,
+      "thumbnail": "https://images-na.ssl-images-amazon.com/images/I/319s5uqY7QL.jpg",
+      "vendorId": "v_dbms_bulk_04",
+      "vendorName": "Cedar Market",
+      "purchasedAt": "2026-09-28T08:23:39.944Z",
+      "createdAt": "2026-10-03T08:10:47.767Z",
+      "updatedAt": "2026-10-03T08:10:47.767Z"
+    },
+    {
+      "_id": "6ac0b8875fb633d3a99aefe7",
+      "id": "6ac0b8879a26004bf8919807",
+      "userId": "6ab4acee97070f1261240b18",
+      "orderId": "ord_9315917",
+      "productId": "prod_wh1000xm5",
+      "title": "Sony WH-1000XM5 Wireless Noise-Canceling Headphones",
+      "price": 29990,
+      "quantity": 1,
+      "thumbnail": "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&auto=format&fit=crop&q=80",
+      "vendorId": "v_soundcrafters",
+      "vendorName": "SoundCrafters Pro",
+      "purchasedAt": "2026-09-24T05:13:41.129Z",
+      "createdAt": "2026-10-03T08:10:47.767Z",
+      "updatedAt": "2026-10-03T08:10:47.767Z"
+    },
+    {
+      "_id": "6ac0b8879a18bc51fad2a949",
+      "id": "6ac0b887c294b2830fcedef9",
+      "userId": "6ab4acee97070f1261240b18",
+      "orderId": "ord_9986851",
+      "productId": "csv_def41984a2f562573bfee5bf3994e47e",
+      "title": "Wildkin Duvet Cover, Full, Dinosaur Land",
+      "price": 7502,
+      "quantity": 1,
+      "thumbnail": "https://images-na.ssl-images-amazon.com/images/I/51Y9%2B4TBY8L.jpg",
+      "vendorId": "v_ergohaven",
+      "vendorName": "ErgoHaven Workspace Solutions",
+      "purchasedAt": "2026-09-24T04:58:59.294Z",
+      "createdAt": "2026-10-03T08:10:47.767Z",
+      "updatedAt": "2026-10-03T08:10:47.767Z"
+    },
+    {
+      "_id": "6ac0b88756cff9598bc17ae2",
+      "id": "6ac0b88799aa97f29843f4fc",
+      "userId": "6ab4acee97070f1261240b18",
+      "orderId": "ord_9986851",
+      "productId": "csv_1eefd4a9f26e2d87c4c6313fae4a9806",
+      "title": "Wildkin 5 Pc Bedding, Twin, Heroes",
+      "price": 7999,
+      "quantity": 1,
+      "thumbnail": "https://images-na.ssl-images-amazon.com/images/I/61osmj4%2BOAL.jpg",
+      "vendorId": "v_ergohaven",
+      "vendorName": "ErgoHaven Workspace Solutions",
+      "purchasedAt": "2026-09-24T04:58:59.294Z",
+      "createdAt": "2026-10-03T08:10:47.766Z",
+      "updatedAt": "2026-10-03T08:10:47.766Z"
+    },
+    {
+      "_id": "6ac0b887f2f18fbc1dce2e08",
+      "id": "6ac0b887870f3cc72786fc18",
+      "userId": "6a99194684521e413ee33e0a",
+      "orderId": "ord_8280600",
+      "productId": "prod_galaxy_s24_ultra",
+      "title": "Samsung Galaxy S24 Ultra 5G (Titanium Gray, 512GB, 12GB RAM)",
+      "price": 139999,
+      "quantity": 1,
+      "thumbnail": "https://images.unsplash.com/photo-1610945415295-d9bbf067e59c?w=800&auto=format&fit=crop&q=80",
+      "vendorId": "v_nexuscomputing",
+      "vendorName": "Nexus Computing & Tech",
+      "purchasedAt": "2026-09-16T04:17:36.546Z",
+      "createdAt": "2026-10-03T08:10:47.766Z",
+      "updatedAt": "2026-10-03T08:10:47.766Z"
+    },
+    {
+      "_id": "6ac0b887fe8674dfcf203b1e",
+      "id": "6ac0b8870a7afe6778231adc",
+      "userId": "6a991c37762f8079ea7d7a33",
+      "orderId": "ord_2088848",
+      "productId": "prod_bose_qc45",
+      "title": "Bose QuietComfort 45 Bluetooth Wireless Headphones",
+      "price": 24900,
+      "quantity": 1,
+      "thumbnail": "https://images.unsplash.com/photo-1546435770-a3e426bf472b?w=800&auto=format&fit=crop&q=80",
+      "vendorId": "v_soundcrafters",
+      "vendorName": "SoundCrafters Pro",
+      "purchasedAt": "2026-09-10T05:54:43.236Z",
+      "createdAt": "2026-10-03T08:10:47.766Z",
+      "updatedAt": "2026-10-03T08:10:47.766Z"
+    },
+    {
+      "_id": "6ac0b887dc783440420745df",
+      "id": "6ac0b887bc6344d03288728e",
+      "userId": "u_buyer_demo",
+      "orderId": "ord_8849201",
+      "productId": "prod_wh1000xm5",
+      "title": "Sony WH-1000XM5 Wireless Noise-Canceling Headphones",
+      "price": 29990,
+      "quantity": 1,
+      "thumbnail": "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&auto=format&fit=crop&q=80",
+      "vendorId": "v_soundcrafters",
+      "vendorName": "SoundCrafters Pro",
+      "purchasedAt": "2026-09-02T06:52:41.691Z",
+      "createdAt": "2026-10-03T08:10:47.766Z",
+      "updatedAt": "2026-10-03T08:10:47.766Z"
     }
   ],
   "audit_logs": [
     {
-      "_id": "6abf90fc2440594d8d12dc15",
-      "id": "6abf90fc66db7a175bd7904b",
+      "_id": "6ac0b90a4372a84735b22343",
+      "id": "6ac0b90aeb8beec90758fb08",
       "action": "ORDER_CREATE",
-      "details": "Order #ord_27870f2a-e72f-417b-ba75-2d1a88b7bfc5 created for ₹435.3",
-      "performedBy": "u_buyer_demo",
-      "createdAt": "2026-10-02T11:09:48.463Z",
-      "updatedAt": "2026-10-02T11:09:48.463Z"
+      "details": "Order #ord_616a5865-1c73-42c7-b03c-4c14a4a22ff2 created for ₹435.3",
+      "performedBy": "6abf8d21caec4e6e3e0f1f66",
+      "createdAt": "2026-10-03T08:12:58.620Z",
+      "updatedAt": "2026-10-03T08:12:58.620Z"
     },
     {
       "_id": "6a991946bc851d072356a07e",
@@ -99334,6 +99652,24 @@
       "performedBy": "6abf8d21caec4e6e3e0f1f66",
       "createdAt": "2026-10-02T11:03:40.457Z",
       "updatedAt": "2026-10-02T11:03:40.457Z"
+    },
+    {
+      "_id": "6abf90fc2440594d8d12dc15",
+      "id": "6abf90fc66db7a175bd7904b",
+      "action": "ORDER_CREATE",
+      "details": "Order #ord_27870f2a-e72f-417b-ba75-2d1a88b7bfc5 created for ₹435.3",
+      "performedBy": "u_buyer_demo",
+      "createdAt": "2026-10-02T11:09:48.463Z",
+      "updatedAt": "2026-10-02T11:09:48.463Z"
+    },
+    {
+      "_id": "6abfe35756e1a4ec801754e4",
+      "id": "6abfe3579054351afcdbed6c",
+      "action": "USER_REGISTER",
+      "details": "New user registered: customer@gmail.com with role buyer",
+      "performedBy": "6abfe3575ef1c532ed809190",
+      "createdAt": "2026-10-02T17:01:11.218Z",
+      "updatedAt": "2026-10-02T17:01:11.218Z"
     }
   ]
 }

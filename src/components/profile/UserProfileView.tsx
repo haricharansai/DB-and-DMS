@@ -19,17 +19,29 @@ import {
   Lock
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
-import { ordersAPI } from '../../services/api';
+import { ordersAPI, purchasesAPI } from '../../services/api';
 import { Order, Address } from '../../types';
 
 interface UserProfileViewProps {
   onNavigate: (view: string, param?: string) => void;
 }
 
+interface CustomerPurchase {
+  id: string;
+  orderId: string;
+  title: string;
+  price: number;
+  quantity: number;
+  thumbnail?: string;
+  vendorName?: string;
+  purchasedAt: string;
+}
+
 export const UserProfileView: React.FC<UserProfileViewProps> = ({ onNavigate }) => {
   const { user, logout, openAuthModal, updateAddresses, updateProfile } = useAuth();
   const [activeTab, setActiveTab] = useState<'profile' | 'addresses' | 'orders'>('profile');
   const [orders, setOrders] = useState<Order[]>([]);
+  const [purchases, setPurchases] = useState<CustomerPurchase[]>([]);
   const [isLoadingOrders, setIsLoadingOrders] = useState(false);
 
   // Edit Mode state
@@ -47,6 +59,7 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({ onNavigate }) 
       setPhone(user.phone || '+91 98765 43210');
       setAvatar(user.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80');
       fetchOrders();
+      fetchPurchases();
     }
   }, [user]);
 
@@ -61,6 +74,15 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({ onNavigate }) 
       console.error('Failed to load orders', err);
     } finally {
       setIsLoadingOrders(false);
+    }
+  };
+
+  const fetchPurchases = async () => {
+    try {
+      const res = await purchasesAPI.getAll();
+      if (res.data?.purchases) setPurchases(res.data.purchases);
+    } catch (err) {
+      console.error('Failed to load purchase history', err);
     }
   };
 
@@ -397,6 +419,32 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({ onNavigate }) 
           <div>
             <h3 className="text-base font-extrabold text-slate-900 font-heading">Order History & Tracking</h3>
             <p className="text-xs text-slate-500">Track current shipments and view previous multi-vendor purchases</p>
+          </div>
+
+          <div className="rounded-2xl border border-indigo-100 bg-indigo-50/40 p-4 space-y-3">
+            <div>
+              <h4 className="text-sm font-extrabold text-slate-900">All Purchased Items</h4>
+              <p className="text-[11px] text-slate-500">Every item purchased by this account, with purchase time</p>
+            </div>
+            {purchases.length === 0 ? (
+              <p className="text-xs text-slate-500">No item-level purchase history yet.</p>
+            ) : (
+              <div className="space-y-2">
+                {purchases.map((purchase) => (
+                  <div key={purchase.id} className="flex items-center gap-3 rounded-xl bg-white border border-indigo-100 p-3">
+                    {purchase.thumbnail && <img src={purchase.thumbnail} alt={purchase.title} className="w-10 h-10 rounded-lg object-cover" />}
+                    <div className="min-w-0 flex-1">
+                      <p className="text-xs font-bold text-slate-900 truncate">{purchase.title}</p>
+                      <p className="text-[11px] text-slate-500">Qty: {purchase.quantity}{purchase.vendorName ? ` • ${purchase.vendorName}` : ''}</p>
+                    </div>
+                    <div className="text-right shrink-0">
+                      <p className="text-xs font-extrabold text-slate-900">₹{(purchase.price * purchase.quantity).toLocaleString('en-IN')}</p>
+                      <p className="text-[10px] text-slate-400">{new Date(purchase.purchasedAt).toLocaleString('en-IN')}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {orders.length === 0 ? (

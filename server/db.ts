@@ -86,7 +86,7 @@ export class MongoDatabase {
 
       const collections = await this.mongoDb.listCollections().toArray();
       const collNames = collections.map(c => c.name);
-      const targetCollections = ['categories', 'vendors', 'products', 'users', 'reviews', 'orders', 'audit_logs'];
+      const targetCollections = ['categories', 'vendors', 'products', 'users', 'reviews', 'orders', 'customer_purchases', 'audit_logs'];
 
       for (const collName of targetCollections) {
         if (collNames.includes(collName)) {
@@ -99,6 +99,7 @@ export class MongoDatabase {
 
       const existingUsers = (this.collections.get('users') || []).length;
       if (existingUsers > 0) {
+        this.backfillCustomerPurchases();
         this.isInitialized = true;
         console.log(`✅ Loaded ${existingUsers} users from real MongoDB database '${dbName}'`);
         return;
@@ -115,6 +116,9 @@ export class MongoDatabase {
         for (const [key, value] of Object.entries(parsed)) {
           this.collections.set(key, value as MongoDocument[]);
         }
+        // Keep older local backups compatible with the purchase-history collection.
+        if (!this.collections.has('customer_purchases')) this.collections.set('customer_purchases', []);
+        this.backfillCustomerPurchases();
         this.isInitialized = true;
         console.log('📦 Database loaded from disk backup (server/db_data.json)');
         
@@ -135,6 +139,7 @@ export class MongoDatabase {
     this.collections.set('users', []);
     this.collections.set('reviews', []);
     this.collections.set('orders', []);
+    this.collections.set('customer_purchases', []);
     this.collections.set('audit_logs', []);
 
     for (const cat of SEED_CATEGORIES) {
@@ -239,6 +244,8 @@ export class MongoDatabase {
       overallTrackingNumber: 'FDX-990218449'
     });
 
+    this.backfillCustomerPurchases();
+
     this.insertOne('audit_logs', {
       _id: this.generateObjectId(),
       action: 'SYSTEM_BOOT',
@@ -252,6 +259,29 @@ export class MongoDatabase {
 
     if (this.mongoDb) {
       await this.syncAllToMongo();
+    }
+  }
+
+  /** Create item-level history for orders written before customer_purchases existed. */
+  private backfillCustomerPurchases(): void {
+    const purchases = this.collections.get('customer_purchases') || [];
+    if (purchases.length > 0) return;
+    const orders = this.collections.get('orders') || [];
+    for (const order of orders) {
+      for (const item of order.items || []) {
+        this.insertOne('customer_purchases', {
+          userId: order.userId,
+          orderId: order.id || order._id,
+          productId: item.productId,
+          title: item.title,
+          price: item.price,
+          quantity: item.quantity,
+          thumbnail: item.thumbnail,
+          vendorId: item.vendorId,
+          vendorName: item.vendorName,
+          purchasedAt: order.createdAt || new Date().toISOString()
+        });
+      }
     }
   }
 
